@@ -218,6 +218,7 @@ impl GraphStore {
     // Config
     // -------------------------------------------------------------------------
 
+    #[allow(dead_code)]
     pub fn load_config(&self) -> Result<Config> {
         let path = self.config_path();
         if !path.exists() {
