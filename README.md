@@ -1,8 +1,8 @@
-# llmgraph
+# memex
 
 A CLI tool for organizing LLM-assisted development work into a versioned, navigable DAG of conversation nodes tied to a software project.
 
-LLM conversations are ephemeral and flat, but real development is hierarchical and branching. `llmgraph` gives each phase of work a structured node capturing what was built, what was decided, what was rejected, and what remains open. Edges represent context inheritance: each child node was started with knowledge of its parent.
+LLM conversations are ephemeral and flat, but real development is hierarchical and branching. `memex` gives each phase of work a structured node capturing what was built, what was decided, what was rejected, and what remains open. Edges represent context inheritance: each child node was started with knowledge of its parent.
 
 ---
 
@@ -10,7 +10,7 @@ LLM conversations are ephemeral and flat, but real development is hierarchical a
 
 ```
 cargo build --release
-cp target/release/llmgraph /usr/local/bin/
+cp target/release/memex /usr/local/bin/
 ```
 
 Or run directly from the project root:
@@ -25,19 +25,19 @@ cargo run -- <command>
 
 ```bash
 # Initialize a graph in your project
-llmgraph init
+memex init
 
 # Create a node for a new feature
-llmgraph node create --parent <root-id>
+memex node create --parent <root-id>
 
 # After your work session, fill in the summary
-llmgraph node edit
+memex node edit
 
 # Generate a context payload to paste into a new LLM conversation
-llmgraph context
+memex context
 
 # View the full conversation history as a tree
-llmgraph graph view
+memex graph view
 ```
 
 ---
@@ -46,17 +46,17 @@ llmgraph graph view
 
 | Command | Description |
 |---|---|
-| `llmgraph init` | Initialize a graph in the current project |
-| `llmgraph node create` | Create a new conversation node |
-| `llmgraph node edit [id]` | Edit a node's summary in `$EDITOR` |
-| `llmgraph node show [id]` | Display a node's full summary |
-| `llmgraph node list` | List all nodes |
-| `llmgraph node resolve [id]` | Mark a node as resolved |
-| `llmgraph node abandon [id]` | Mark a node as abandoned |
-| `llmgraph node reopen [id]` | Reopen a resolved or abandoned node |
-| `llmgraph context [id]` | Generate a context payload for LLM injection |
-| `llmgraph graph view` | ASCII tree of the full conversation graph |
-| `llmgraph search <query>` | Search across all node summaries |
+| `memex init` | Initialize a graph in the current project |
+| `memex node create` | Create a new conversation node |
+| `memex node edit [id]` | Edit a node's summary in `$EDITOR` |
+| `memex node show [id]` | Display a node's full summary |
+| `memex node list` | List all nodes |
+| `memex node resolve [id]` | Mark a node as resolved |
+| `memex node abandon [id]` | Mark a node as abandoned |
+| `memex node reopen [id]` | Reopen a resolved or abandoned node |
+| `memex context [id]` | Generate a context payload for LLM injection |
+| `memex graph view` | ASCII tree of the full conversation graph |
+| `memex search <query>` | Search across all node summaries |
 
 Node IDs can be shortened to any unambiguous prefix (e.g. `abc12345` → `abc1`).
 
@@ -64,22 +64,22 @@ Node IDs can be shortened to any unambiguous prefix (e.g. `abc12345` → `abc1`)
 
 ## Development Workflow
 
-`llmgraph` is used to track its own development. The pattern for any new feature:
+`memex` is used to track its own development. The pattern for any new feature:
 
 1. **Create a branch** - `git checkout -b feat/<name>`
-2. **Create a node** - `llmgraph node create --parent <parent-id>` with a placeholder goal
+2. **Create a node** - `memex node create --parent <parent-id>` with a placeholder goal
 3. **Implement** the feature
-4. **Write the node summary** - `llmgraph node edit` to capture decisions, rejected approaches, and key artifacts
-5. **Resolve the node** - `llmgraph node resolve`
+4. **Write the node summary** - `memex node edit` to capture decisions, rejected approaches, and key artifacts
+5. **Resolve the node** - `memex node resolve`
 6. **Commit and push** - stage source changes and open a PR
 
-The `llmgraph context` command generates a formatted summary of the ancestor chain suitable for pasting into a new LLM conversation, so future sessions can pick up where the last one left off without re-explaining history.
+The `memex context` command generates a formatted summary of the ancestor chain suitable for pasting into a new LLM conversation, so future sessions can pick up where the last one left off without re-explaining history.
 
 ---
 
 ## Configuration
 
-`llmgraph init` creates `.llmgraph/config.toml` at the project root.
+`memex init` creates `.memex/config.toml` at the project root.
 
 ```toml
 [git]
@@ -99,16 +99,16 @@ web_port = 7777
 
 | Path | Committed | Notes |
 |---|---|---|
-| `.llmgraph/config.toml` | Yes | Shared project settings |
-| `.llmgraph/graph.json` | Yes | DAG edges and root node pointer |
-| `.llmgraph/nodes/*.json` | Yes | Full conversation node history |
-| `.llmgraph/state.json` | No | Local session state (active node) |
-| `.llmgraph/transcripts/` | No | Raw transcripts, if stored locally |
+| `.memex/config.toml` | Yes | Shared project settings |
+| `.memex/graph.json` | Yes | DAG edges and root node pointer |
+| `.memex/nodes/*.json` | Yes | Full conversation node history |
+| `.memex/state.json` | No | Local session state (active node) |
+| `.memex/transcripts/` | No | Raw transcripts, if stored locally |
 
 ### Storage layout
 
 ```
-.llmgraph/
+.memex/
   config.toml       # committed - shared settings
   graph.json        # committed - DAG structure
   nodes/
@@ -120,7 +120,7 @@ web_port = 7777
 
 ## Node Summary Format
 
-When editing a node (`llmgraph node edit`), a TOML template is opened in `$EDITOR`:
+When editing a node (`memex node edit`), a TOML template is opened in `$EDITOR`:
 
 ```toml
 goal = "What this conversation was working toward"

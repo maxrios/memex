@@ -10,6 +10,7 @@ pub fn create(
     parent: Option<&str>,
     git_ref: Option<&str>,
     tags: &[String],
+    goal: Option<&str>,
 ) -> Result<()> {
     let store = GraphStore::open_from_cwd()?;
     let mut graph = store.load_graph()?;
@@ -32,11 +33,21 @@ pub fn create(
         None
     };
 
-    // Open editor for summary
-    println!("Opening editor to fill in node summary...");
-    let summary = editor::edit_node_summary(None)?;
+    // Use --goal directly or open editor
+    let summary = if let Some(g) = goal {
+        use crate::models::NodeSummary;
+        NodeSummary {
+            goal: g.to_string(),
+            decisions: Vec::new(),
+            rejected_approaches: Vec::new(),
+            open_threads: Vec::new(),
+            key_artifacts: Vec::new(),
+        }
+    } else {
+        println!("Opening editor to fill in node summary...");
+        editor::edit_node_summary(None)?
+    };
 
-    // Create node
     let mut node = ConversationNode::new(parent_ids.clone(), resolved_git_ref, tags.to_vec());
     node.summary = summary;
 

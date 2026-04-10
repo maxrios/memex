@@ -12,13 +12,13 @@ pub fn run() -> Result<()> {
     let store = GraphStore::open(cwd);
 
     if store.is_initialized() {
-        eprintln!("Warning: .llmgraph/ already exists. Skipping initialization.");
+        eprintln!("Warning: .memex/ already exists. Skipping initialization.");
         return Ok(());
     }
 
     store.initialize()?;
 
-    println!("Initialized .llmgraph/ directory.");
+    println!("Initialized .memex/ directory.");
 
     // Detect git context
     let git_ref = if git::is_git_repo() {
@@ -60,7 +60,7 @@ pub fn run() -> Result<()> {
 
     println!("\nCreated root node: {}", root_id);
     println!("Active node set to root.");
-    println!("\nTip: Use `llmgraph node create` to start a new conversation node.");
+    println!("\nTip: Use `memex node create` to start a new conversation node.");
 
     Ok(())
 }

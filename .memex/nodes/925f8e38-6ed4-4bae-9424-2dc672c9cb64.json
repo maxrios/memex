@@ -1,0 +1,33 @@
+{
+  "id": "925f8e38-6ed4-4bae-9424-2dc672c9cb64",
+  "parent_ids": [
+    "b12d7577-0ce6-415b-872d-e1500a48e87a"
+  ],
+  "git_ref": "chore/rename-to-memex (d547d368)",
+  "created_at": "2026-04-10T23:22:47.684003Z",
+  "updated_at": "2026-04-10T23:30:00.000000Z",
+  "summary": {
+    "goal": "Rename project from llmgraph to memex throughout the codebase, and add --goal flag to node create for non-interactive (agent) use",
+    "decisions": [
+      "Renamed binary, package, .llmgraph/ dir, XML context tags, temp file prefixes, and all user-facing strings from llmgraph to memex",
+      "Added --goal <text> flag to `memex node create` that skips the editor entirely — agents can now create nodes in one non-interactive command",
+      "Updated CLAUDE.md to document --goal and use it in the node creation step of the dev workflow"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "Cargo.toml",
+      "src/main.rs",
+      "src/store.rs",
+      "src/commands/init.rs",
+      "src/commands/context.rs",
+      "src/commands/node.rs",
+      "src/editor.rs",
+      "README.md",
+      "CLAUDE.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

@@ -11,11 +11,11 @@ pub struct GraphStore {
 }
 
 impl GraphStore {
-    /// Find the nearest `.llmgraph/` directory by walking up from `cwd`.
+    /// Find the nearest `.memex/` directory by walking up from `cwd`.
     pub fn find(cwd: &Path) -> Option<PathBuf> {
         let mut dir = cwd.to_path_buf();
         loop {
-            let candidate = dir.join(".llmgraph");
+            let candidate = dir.join(".memex");
             if candidate.is_dir() {
                 return Some(dir);
             }
@@ -25,7 +25,7 @@ impl GraphStore {
         }
     }
 
-    /// Open a store rooted at `root` (the project root, not the .llmgraph dir).
+    /// Open a store rooted at `root` (the project root, not the .memex dir).
     pub fn open(root: PathBuf) -> Self {
         GraphStore { root }
     }
@@ -36,29 +36,29 @@ impl GraphStore {
         match Self::find(&cwd) {
             Some(root) => Ok(GraphStore::open(root)),
             None => bail!(
-                "No .llmgraph directory found. Run `llmgraph init` to initialize."
+                "No .memex directory found. Run `memex init` to initialize."
             ),
         }
     }
 
-    pub fn llmgraph_dir(&self) -> PathBuf {
-        self.root.join(".llmgraph")
+    pub fn memex_dir(&self) -> PathBuf {
+        self.root.join(".memex")
     }
 
     pub fn nodes_dir(&self) -> PathBuf {
-        self.llmgraph_dir().join("nodes")
+        self.memex_dir().join("nodes")
     }
 
     pub fn graph_path(&self) -> PathBuf {
-        self.llmgraph_dir().join("graph.json")
+        self.memex_dir().join("graph.json")
     }
 
     pub fn state_path(&self) -> PathBuf {
-        self.llmgraph_dir().join("state.json")
+        self.memex_dir().join("state.json")
     }
 
     pub fn config_path(&self) -> PathBuf {
-        self.llmgraph_dir().join("config.toml")
+        self.memex_dir().join("config.toml")
     }
 
     // -------------------------------------------------------------------------
@@ -66,12 +66,12 @@ impl GraphStore {
     // -------------------------------------------------------------------------
 
     pub fn is_initialized(&self) -> bool {
-        self.llmgraph_dir().is_dir()
+        self.memex_dir().is_dir()
     }
 
     pub fn initialize(&self) -> Result<()> {
-        let dir = self.llmgraph_dir();
-        fs::create_dir_all(&dir).context("Failed to create .llmgraph directory")?;
+        let dir = self.memex_dir();
+        fs::create_dir_all(&dir).context("Failed to create .memex directory")?;
         fs::create_dir_all(self.nodes_dir()).context("Failed to create nodes directory")?;
 
         // Write default config if not present
