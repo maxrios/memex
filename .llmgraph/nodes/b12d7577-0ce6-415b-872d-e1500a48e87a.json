@@ -1,0 +1,30 @@
+{
+  "id": "b12d7577-0ce6-415b-872d-e1500a48e87a",
+  "parent_ids": [
+    "0063801a-b3b6-475d-928a-74305810efe2"
+  ],
+  "git_ref": "chore/revert-llm (edcb1a13)",
+  "created_at": "2026-04-10T22:34:52.507448Z",
+  "updated_at": "2026-04-10T22:37:09.739538Z",
+  "summary": {
+    "goal": "Remove F7 LLM summarize feature and revert config split — llmgraph should be a storage/navigation tool, not an LLM client",
+    "decisions": [
+      "Removed llmgraph node summarize command and reqwest dependency entirely — node edit is the right primitive for writing summaries",
+      "Reverted config split (config.local.toml) since the only sensitive data was the LLM API key, which no longer exists in the codebase",
+      "Kept .llmgraph/.gitignore covering state.json and transcripts/ since those are still session/personal artifacts"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/commands/summarize.rs",
+      "src/commands/mod.rs",
+      "src/main.rs",
+      "Cargo.toml"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [
+    "cleanup"
+  ],
+  "status": "Resolved"
+}

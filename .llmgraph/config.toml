@@ -1,0 +1,11 @@
+[git]
+auto_prompt_on_branch = true
+annotate_on_commit = false
+
+[storage]
+track_in_git = true
+transcript_storage = "none"
+
+[ui]
+editor = ""
+web_port = 7777

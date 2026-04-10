@@ -1,0 +1,30 @@
+{
+  "id": "0063801a-b3b6-475d-928a-74305810efe2",
+  "parent_ids": [],
+  "git_ref": null,
+  "created_at": "2026-04-10T21:30:51.628116Z",
+  "updated_at": "2026-04-10T22:07:16.225919Z",
+  "summary": {
+    "goal": "To create a CLI tool named llmgraph that organizes LLM-assisted development work into a versioned, navigable DAG of conversation nodes tied to a software project.",
+    "decisions": [
+      "One JSON file per node under .llmgraph/nodes/<uuid>.json for human-readable and git-diffable history.",
+      "graph.json holds the DAG edges and root/active node pointers.",
+      "state.json (untracked) holds the active node for the current session.",
+      "All file I/O goes through a GraphStore abstraction to allow swapping storage backends later, with SQLite as the obvious v2 target.",
+      "Git integration uses subprocess calls to `git` rather than libgit2 to keep the dependency footprint small.",
+      "The context payload command (llmgraph context) walks the ancestor path from root to target node and formats it for pasting directly into a new LLM conversation."
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/main.rs",
+      "src/models.rs",
+      "src/store.rs",
+      "src/editor.rs",
+      "src/commands/"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

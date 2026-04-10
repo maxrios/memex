@@ -1,0 +1,38 @@
+{
+  "id": "c1c47299-e44b-42da-bdb2-994c259c40cd",
+  "parent_ids": [
+    "0063801a-b3b6-475d-928a-74305810efe2"
+  ],
+  "git_ref": "feat/config-split (edcb1a13)",
+  "created_at": "2026-04-10T22:21:35.979672Z",
+  "updated_at": "2026-04-10T22:23:02.633366Z",
+  "summary": {
+    "goal": "To implement a secure configuration split pattern to separate shared settings from per-developer secrets in the .llmgraph/ directory.",
+    "decisions": [
+      "Used a PartialConfig overlay struct with all Option<T> fields to represent config.local.toml, avoiding serde_json Value merging and keeping merge logic explicit.",
+      "Added api_key: Option<String> to LlmConfig, skipping serialization so it never appears in config.toml output."
+    ],
+    "rejected_approaches": [
+      {
+        "description": "toml::Value merging",
+        "reason": "Loses type safety and makes the merge logic opaque."
+      },
+      {
+        "description": "Single config file with a separate secrets file for just the key",
+        "reason": "Less flexible, doesn't allow overriding any config value locally."
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/models.rs",
+      "src/store.rs",
+      "src/commands/init.rs",
+      "src/commands/summarize.rs"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [
+    "config,secrets"
+  ],
+  "status": "Resolved"
+}

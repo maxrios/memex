@@ -1,0 +1,40 @@
+{
+  "id": "795dad67-a2db-43a4-bcad-0cbf7ea46923",
+  "parent_ids": [
+    "0063801a-b3b6-475d-928a-74305810efe2"
+  ],
+  "git_ref": "feat/llm-summarize (366424f3)",
+  "created_at": "2026-04-10T22:01:58.788255Z",
+  "updated_at": "2026-04-10T22:04:44.578663Z",
+  "summary": {
+    "goal": "Implement a CLI subcommand for LLM-assisted node summary drafting",
+    "decisions": [
+      "Used reqwest with blocking feature for synchronous code",
+      "Constructed the LLM endpoint from the `base_url` in .llmgraph/config.toml",
+      "Instructed the model to return only a raw JSON object and handled potential markdown wrapping",
+      "Opened the draft in the user's `$EDITOR` for review and correction"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Using an async reqwest client with tokio",
+        "reason": "Would have required adding tokio as a dependency and wrapping main with #[tokio::main], which is heavier than needed for a synchronous CLI."
+      },
+      {
+        "description": "Streaming the LLM response",
+        "reason": "Adds complexity for no UX benefit since we open an editor afterward anyway."
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/commands/summarize.rs",
+      "src/commands/mod.rs",
+      "src/main.rs",
+      "Cargo.toml"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [
+    "llm-integration"
+  ],
+  "status": "Resolved"
+}
