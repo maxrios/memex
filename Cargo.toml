@@ -16,4 +16,3 @@ chrono = { version = "0.4", features = ["serde"] }
 anyhow = "1"
 toml = "0.8"
 tempfile = "3"
-reqwest = { version = "0.12", features = ["blocking", "json"] }
