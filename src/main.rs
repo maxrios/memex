@@ -104,6 +104,16 @@ enum NodeCommands {
         /// Node ID (defaults to active node)
         id: Option<String>,
     },
+
+    /// Draft a node summary from a conversation transcript using the configured LLM
+    Summarize {
+        /// Node ID (defaults to active node)
+        id: Option<String>,
+
+        /// Path to the conversation transcript file
+        #[arg(long)]
+        transcript: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -143,6 +153,9 @@ fn run(cli: Cli) -> Result<()> {
             }
             NodeCommands::Reopen { id } => {
                 commands::node::set_status(id.as_deref(), NodeStatus::Active)
+            }
+            NodeCommands::Summarize { id, transcript } => {
+                commands::summarize::run(id.as_deref(), &transcript)
             }
         },
 
