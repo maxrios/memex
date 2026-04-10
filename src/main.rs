@@ -12,7 +12,7 @@ use models::NodeStatus;
 
 #[derive(Parser)]
 #[command(
-    name = "llmgraph",
+    name = "memex",
     about = "Organize LLM conversations into a versioned, navigable DAG tied to a software project",
     version
 )]
@@ -23,7 +23,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Initialize a new llmgraph in the current directory
+    /// Initialize a new memex in the current directory
     Init,
 
     /// Manage conversation nodes
@@ -70,6 +70,10 @@ enum NodeCommands {
         /// Tags to attach to this node
         #[arg(long, name = "tag", num_args = 1)]
         tags: Vec<String>,
+
+        /// Node goal (skips editor; required for non-interactive use)
+        #[arg(long)]
+        goal: Option<String>,
     },
 
     /// Edit a node's summary in $EDITOR
@@ -125,11 +129,12 @@ fn run(cli: Cli) -> Result<()> {
         Commands::Init => commands::init::run(),
 
         Commands::Node { subcommand } => match subcommand {
-            NodeCommands::Create { parent, git_ref, tags } => {
+            NodeCommands::Create { parent, git_ref, tags, goal } => {
                 commands::node::create(
                     parent.as_deref(),
                     git_ref.as_deref(),
                     &tags,
+                    goal.as_deref(),
                 )
             }
             NodeCommands::Edit { id } => commands::node::edit(id.as_deref()),

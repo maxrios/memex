@@ -19,7 +19,7 @@ pub fn edit_node_summary(existing: Option<&NodeSummary>) -> Result<NodeSummary> 
     };
 
     let tmp = Builder::new()
-        .prefix("llmgraph-node-")
+        .prefix("memex-node-")
         .suffix(".toml")
         .tempfile()
         .context("Failed to create temp file")?;
@@ -46,7 +46,7 @@ pub fn edit_node_summary(existing: Option<&NodeSummary>) -> Result<NodeSummary> 
 /// Open arbitrary text content in the editor, return the edited content.
 pub fn edit_text(initial: &str, suffix: &str) -> Result<String> {
     let tmp = Builder::new()
-        .prefix("llmgraph-")
+        .prefix("memex-")
         .suffix(suffix)
         .tempfile()
         .context("Failed to create temp file")?;

@@ -196,10 +196,10 @@ fn generate_xml(
     _target_id: Uuid,
 ) -> Result<String> {
     let mut out = String::new();
-    out.push_str("<llmgraph_context>\n");
+    out.push_str("<memex_context>\n");
 
     if path.is_empty() {
-        out.push_str("</llmgraph_context>\n");
+        out.push_str("</memex_context>\n");
         return Ok(out);
     }
 
@@ -296,7 +296,7 @@ fn generate_xml(
         out.push_str("  </current_node_context>\n");
     }
 
-    out.push_str("</llmgraph_context>\n");
+    out.push_str("</memex_context>\n");
     Ok(out)
 }
 
