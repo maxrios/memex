@@ -26,25 +26,13 @@ pub struct RejectedApproach {
     pub reason: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct NodeSummary {
     pub goal: String,
     pub decisions: Vec<String>,
     pub rejected_approaches: Vec<RejectedApproach>,
     pub open_threads: Vec<String>,
     pub key_artifacts: Vec<String>,
-}
-
-impl Default for NodeSummary {
-    fn default() -> Self {
-        NodeSummary {
-            goal: String::new(),
-            decisions: Vec::new(),
-            rejected_approaches: Vec::new(),
-            open_threads: Vec::new(),
-            key_artifacts: Vec::new(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -193,7 +181,7 @@ impl From<NodeSummaryToml> for NodeSummary {
 }
 
 /// Config file structure
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub llm: LlmConfig,
@@ -203,17 +191,6 @@ pub struct Config {
     pub storage: StorageConfig,
     #[serde(default)]
     pub ui: UiConfig,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            llm: LlmConfig::default(),
-            git: GitConfig::default(),
-            storage: StorageConfig::default(),
-            ui: UiConfig::default(),
-        }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

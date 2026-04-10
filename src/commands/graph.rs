@@ -17,16 +17,12 @@ pub fn view() -> Result<()> {
         return Ok(());
     }
 
-    let node_map: HashMap<Uuid, &ConversationNode> =
-        nodes.iter().map(|n| (n.id, n)).collect();
+    let node_map: HashMap<Uuid, &ConversationNode> = nodes.iter().map(|n| (n.id, n)).collect();
 
     // Build children map from graph edges
     let mut children: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
     for edge in &graph.edges {
-        children
-            .entry(edge.from)
-            .or_default()
-            .push(edge.to);
+        children.entry(edge.from).or_default().push(edge.to);
     }
 
     // Find roots: nodes with no parents (or the designated root_id first)
@@ -54,14 +50,7 @@ pub fn view() -> Result<()> {
 
     for (i, root) in roots.iter().enumerate() {
         let is_last = i == roots.len() - 1;
-        print_subtree(
-            *root,
-            &node_map,
-            &children,
-            state.active_id,
-            "",
-            is_last,
-        );
+        print_subtree(*root, &node_map, &children, state.active_id, "", is_last);
     }
 
     println!();
@@ -88,7 +77,11 @@ fn print_subtree(
             NodeStatus::Abandoned => "✗",
         };
 
-        let active_marker = if active_id == Some(node.id) { " [*]" } else { "" };
+        let active_marker = if active_id == Some(node.id) {
+            " [*]"
+        } else {
+            ""
+        };
 
         let goal = node.summary.goal.chars().take(45).collect::<String>();
         let goal = if node.summary.goal.len() > 45 {

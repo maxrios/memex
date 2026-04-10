@@ -15,7 +15,10 @@ pub fn run(query: &str) -> Result<()> {
 
         // Search goal
         if node.summary.goal.to_lowercase().contains(&query_lower) {
-            matched_fields.push(format!("goal: \"{}\"", highlight(&node.summary.goal, query)));
+            matched_fields.push(format!(
+                "goal: \"{}\"",
+                highlight(&node.summary.goal, query)
+            ));
         }
 
         // Search decisions
@@ -46,22 +49,14 @@ pub fn run(query: &str) -> Result<()> {
         // Search open threads
         for (i, t) in node.summary.open_threads.iter().enumerate() {
             if t.to_lowercase().contains(&query_lower) {
-                matched_fields.push(format!(
-                    "open_thread[{}]: \"{}\"",
-                    i,
-                    highlight(t, query)
-                ));
+                matched_fields.push(format!("open_thread[{}]: \"{}\"", i, highlight(t, query)));
             }
         }
 
         // Search key artifacts
         for (i, a) in node.summary.key_artifacts.iter().enumerate() {
             if a.to_lowercase().contains(&query_lower) {
-                matched_fields.push(format!(
-                    "artifact[{}]: \"{}\"",
-                    i,
-                    highlight(a, query)
-                ));
+                matched_fields.push(format!("artifact[{}]: \"{}\"", i, highlight(a, query)));
             }
         }
 
@@ -74,7 +69,11 @@ pub fn run(query: &str) -> Result<()> {
 
         if !matched_fields.is_empty() {
             found = true;
-            let active_marker = if state.active_id == Some(node.id) { " [*]" } else { "" };
+            let active_marker = if state.active_id == Some(node.id) {
+                " [*]"
+            } else {
+                ""
+            };
             println!(
                 "Node: {} ({}){}",
                 node.short_id(),

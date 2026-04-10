@@ -129,14 +129,17 @@ fn run(cli: Cli) -> Result<()> {
         Commands::Init => commands::init::run(),
 
         Commands::Node { subcommand } => match subcommand {
-            NodeCommands::Create { parent, git_ref, tags, goal } => {
-                commands::node::create(
-                    parent.as_deref(),
-                    git_ref.as_deref(),
-                    &tags,
-                    goal.as_deref(),
-                )
-            }
+            NodeCommands::Create {
+                parent,
+                git_ref,
+                tags,
+                goal,
+            } => commands::node::create(
+                parent.as_deref(),
+                git_ref.as_deref(),
+                &tags,
+                goal.as_deref(),
+            ),
             NodeCommands::Edit { id } => commands::node::edit(id.as_deref()),
             NodeCommands::Show { id } => commands::node::show(id.as_deref()),
             NodeCommands::List => commands::node::list(),

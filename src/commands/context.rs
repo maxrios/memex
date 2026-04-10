@@ -29,11 +29,12 @@ pub fn run(id: Option<&str>, format: OutputFormat) -> Result<()> {
     let graph = store.load_graph()?;
     let node_id = store.resolve_node_id(id)?;
     let nodes = store.load_all_nodes()?;
-    let node_map: HashMap<Uuid, &ConversationNode> =
-        nodes.iter().map(|n| (n.id, n)).collect();
+    let node_map: HashMap<Uuid, &ConversationNode> = nodes.iter().map(|n| (n.id, n)).collect();
 
     // Build parent path: from root to target node
-    let root_id = graph.root_id.ok_or_else(|| anyhow::anyhow!("Graph has no root node"))?;
+    let root_id = graph
+        .root_id
+        .ok_or_else(|| anyhow::anyhow!("Graph has no root node"))?;
 
     let path = find_path(root_id, node_id, &node_map)
         .ok_or_else(|| anyhow::anyhow!("Could not find path from root to node {}", node_id))?;
@@ -117,7 +118,11 @@ fn generate_markdown(
     }
 
     // Ancestors (everything between root and immediate parent of target)
-    let ancestor_range = if path.len() > 2 { &path[1..path.len() - 1] } else { &[] };
+    let ancestor_range = if path.len() > 2 {
+        &path[1..path.len() - 1]
+    } else {
+        &[]
+    };
     if !ancestor_range.is_empty() {
         out.push_str("## Ancestor Context\n\n");
         for &anc_id in ancestor_range {
@@ -145,7 +150,8 @@ fn generate_markdown(
 
     // If path.len() > 1, the last element IS the target; show it as "Current Node"
     // If path.len() == 1, it's both root and target
-    let section_title = if path.len() == 1 || (path.len() > 1 && path[path.len() - 1] == target_id) {
+    let section_title = if path.len() == 1 || (path.len() > 1 && path[path.len() - 1] == target_id)
+    {
         "## Current Node Context"
     } else {
         "## Immediate Parent Context"
@@ -207,7 +213,10 @@ fn generate_xml(
     let root_id = path[0];
     if let Some(root) = node_map.get(&root_id) {
         out.push_str("  <project_context>\n");
-        out.push_str(&format!("    <goal>{}</goal>\n", xml_escape(&root.summary.goal)));
+        out.push_str(&format!(
+            "    <goal>{}</goal>\n",
+            xml_escape(&root.summary.goal)
+        ));
         if !root.summary.decisions.is_empty() {
             out.push_str("    <decisions>\n");
             for d in &root.summary.decisions {
@@ -219,7 +228,11 @@ fn generate_xml(
     }
 
     // Ancestors
-    let ancestor_range = if path.len() > 2 { &path[1..path.len() - 1] } else { &[] };
+    let ancestor_range = if path.len() > 2 {
+        &path[1..path.len() - 1]
+    } else {
+        &[]
+    };
     if !ancestor_range.is_empty() {
         out.push_str("  <ancestor_context>\n");
         for &anc_id in ancestor_range {
@@ -233,10 +246,7 @@ fn generate_xml(
                 if !node.summary.decisions.is_empty() {
                     out.push_str("      <decisions>\n");
                     for d in &node.summary.decisions {
-                        out.push_str(&format!(
-                            "        <decision>{}</decision>\n",
-                            xml_escape(d)
-                        ));
+                        out.push_str(&format!("        <decision>{}</decision>\n", xml_escape(d)));
                     }
                     out.push_str("      </decisions>\n");
                 }
@@ -250,7 +260,10 @@ fn generate_xml(
     let immediate = path[path.len() - 1];
     if let Some(node) = node_map.get(&immediate) {
         out.push_str("  <current_node_context>\n");
-        out.push_str(&format!("    <goal>{}</goal>\n", xml_escape(&node.summary.goal)));
+        out.push_str(&format!(
+            "    <goal>{}</goal>\n",
+            xml_escape(&node.summary.goal)
+        ));
 
         if !node.summary.decisions.is_empty() {
             out.push_str("    <decisions>\n");
@@ -324,7 +337,11 @@ fn generate_plain(
         out.push('\n');
     }
 
-    let ancestor_range = if path.len() > 2 { &path[1..path.len() - 1] } else { &[] };
+    let ancestor_range = if path.len() > 2 {
+        &path[1..path.len() - 1]
+    } else {
+        &[]
+    };
     if !ancestor_range.is_empty() {
         out.push_str("ANCESTOR CONTEXT\n");
         for &anc_id in ancestor_range {

@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use uuid::Uuid;
 
 use crate::models::{Config, ConversationNode, Graph, State};
@@ -35,9 +35,7 @@ impl GraphStore {
         let cwd = std::env::current_dir().context("Failed to get current directory")?;
         match Self::find(&cwd) {
             Some(root) => Ok(GraphStore::open(root)),
-            None => bail!(
-                "No .memex directory found. Run `memex init` to initialize."
-            ),
+            None => bail!("No .memex directory found. Run `memex init` to initialize."),
         }
     }
 
@@ -77,8 +75,7 @@ impl GraphStore {
         // Write default config if not present
         if !self.config_path().exists() {
             let config = Config::default();
-            let toml_str =
-                toml::to_string_pretty(&config).context("Failed to serialize config")?;
+            let toml_str = toml::to_string_pretty(&config).context("Failed to serialize config")?;
             fs::write(self.config_path(), toml_str).context("Failed to write config.toml")?;
         }
 
@@ -147,8 +144,8 @@ impl GraphStore {
 
     pub fn load_node(&self, id: Uuid) -> Result<ConversationNode> {
         let path = self.node_path(id);
-        let data = fs::read_to_string(&path)
-            .with_context(|| format!("Failed to read node {}", id))?;
+        let data =
+            fs::read_to_string(&path).with_context(|| format!("Failed to read node {}", id))?;
         serde_json::from_str(&data).with_context(|| format!("Failed to parse node {}", id))
     }
 
@@ -162,10 +159,8 @@ impl GraphStore {
             let entry = entry.context("Failed to read directory entry")?;
             let path = entry.path();
             if path.extension().and_then(|e| e.to_str()) == Some("json") {
-                let data =
-                    fs::read_to_string(&path).with_context(|| {
-                        format!("Failed to read {}", path.display())
-                    })?;
+                let data = fs::read_to_string(&path)
+                    .with_context(|| format!("Failed to read {}", path.display()))?;
                 let node: ConversationNode = serde_json::from_str(&data)
                     .with_context(|| format!("Failed to parse {}", path.display()))?;
                 nodes.push(node);

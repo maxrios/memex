@@ -88,7 +88,10 @@ fn get_project_goal() -> Result<String> {
     } else {
         // Non-interactive: read from stdin
         let mut input = String::new();
-        stdin.lock().read_to_string(&mut input).context("Failed to read from stdin")?;
+        stdin
+            .lock()
+            .read_to_string(&mut input)
+            .context("Failed to read from stdin")?;
         let goal = input.trim().to_string();
         if goal.is_empty() {
             Ok("Project root node".to_string())

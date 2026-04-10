@@ -1,5 +1,5 @@
+use anyhow::{bail, Result};
 use chrono::Utc;
-use anyhow::{Result, bail};
 
 use crate::editor;
 use crate::git;
@@ -107,13 +107,17 @@ pub fn list() -> Result<()> {
 
     // Header
     println!(
-        "{:<10} {:<10} {:<20} {:<52} {}",
-        "ID", "Status", "GitRef", "Goal", "Created"
+        "{:<10} {:<10} {:<20} {:<52} Created",
+        "ID", "Status", "GitRef", "Goal"
     );
     println!("{}", "-".repeat(110));
 
     for node in &nodes {
-        let active_marker = if state.active_id == Some(node.id) { "*" } else { " " };
+        let active_marker = if state.active_id == Some(node.id) {
+            "*"
+        } else {
+            " "
+        };
         let short_id = format!("{}{}", active_marker, node.short_id());
         let status = format!("{}", node.status);
         let git_ref = node
