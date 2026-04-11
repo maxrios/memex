@@ -80,6 +80,10 @@ enum NodeCommands {
     Edit {
         /// Node ID (defaults to active node)
         id: Option<String>,
+
+        /// Summary as a TOML string (skips editor; for non-interactive/agent use)
+        #[arg(long)]
+        summary: Option<String>,
     },
 
     /// Show a node's full summary
@@ -140,7 +144,9 @@ fn run(cli: Cli) -> Result<()> {
                 &tags,
                 goal.as_deref(),
             ),
-            NodeCommands::Edit { id } => commands::node::edit(id.as_deref()),
+            NodeCommands::Edit { id, summary } => {
+                commands::node::edit(id.as_deref(), summary.as_deref())
+            }
             NodeCommands::Show { id } => commands::node::show(id.as_deref()),
             NodeCommands::List => commands::node::list(),
             NodeCommands::Resolve { id } => {

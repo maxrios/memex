@@ -1,9 +1,9 @@
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use chrono::Utc;
 
 use crate::editor;
 use crate::git;
-use crate::models::{ConversationNode, NodeStatus};
+use crate::models::{ConversationNode, NodeStatus, NodeSummary};
 use crate::store::GraphStore;
 
 pub fn create(
@@ -68,13 +68,21 @@ pub fn create(
     Ok(())
 }
 
-pub fn edit(id: Option<&str>) -> Result<()> {
+pub fn edit(id: Option<&str>, summary_toml: Option<&str>) -> Result<()> {
+    use crate::models::NodeSummaryToml;
+
     let store = GraphStore::open_from_cwd()?;
     let node_id = store.resolve_node_id(id)?;
     let mut node = store.load_node(node_id)?;
 
-    println!("Opening editor to edit node {}...", node.short_id());
-    let summary = editor::edit_node_summary(Some(&node.summary))?;
+    let summary = if let Some(toml_str) = summary_toml {
+        let parsed: NodeSummaryToml =
+            toml::from_str(toml_str).context("Failed to parse --summary TOML")?;
+        NodeSummary::from(parsed)
+    } else {
+        println!("Opening editor to edit node {}...", node.short_id());
+        editor::edit_node_summary(Some(&node.summary))?
+    };
 
     node.summary = summary;
     node.updated_at = Utc::now();
