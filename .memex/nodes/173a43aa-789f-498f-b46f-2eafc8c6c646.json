@@ -1,0 +1,25 @@
+{
+  "id": "173a43aa-789f-498f-b46f-2eafc8c6c646",
+  "parent_ids": [
+    "925f8e38-6ed4-4bae-9424-2dc672c9cb64"
+  ],
+  "git_ref": "docs/parent-node-guidance (e7ab745c)",
+  "created_at": "2026-04-11T04:35:59.993236Z",
+  "updated_at": "2026-04-11T05:00:17.754576Z",
+  "summary": {
+    "goal": "Add guidance to CLAUDE.md for identifying the right parent node before branching",
+    "decisions": [
+      "Added step 1 to the dev workflow with three concrete lookup commands: memex graph view (for the DAG shape), memex node list (for ID/status/goal scanning), and memex search <keyword> (for full-text discovery)",
+      "Kept the guidance inline with the numbered workflow rather than a separate section, so it reads as a prerequisite step rather than reference material",
+      "Included two heuristics: default to the current active node [*] for genuinely new work; prefer the most specific ancestor over the root when extending prior work"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "CLAUDE.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
