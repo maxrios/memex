@@ -13,7 +13,7 @@ use models::NodeStatus;
 #[derive(Parser)]
 #[command(
     name = "memex",
-    about = "Organize LLM conversations into a versioned, navigable DAG tied to a software project",
+    about = "Organize development work into a versioned, navigable DAG of conversation nodes",
     version
 )]
 struct Cli {
@@ -38,7 +38,7 @@ enum Commands {
         subcommand: GraphCommands,
     },
 
-    /// Generate a context payload for LLM injection
+    /// Generate a context payload for the next conversation
     Context {
         /// Node ID (defaults to active node)
         id: Option<String>,

@@ -173,32 +173,11 @@ impl From<NodeSummaryToml> for NodeSummary {
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
-    pub llm: LlmConfig,
-    #[serde(default)]
     pub git: GitConfig,
     #[serde(default)]
     pub storage: StorageConfig,
     #[serde(default)]
     pub ui: UiConfig,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct LlmConfig {
-    pub provider: String,
-    pub api_key_env: String,
-    pub model: String,
-    pub base_url: String,
-}
-
-impl Default for LlmConfig {
-    fn default() -> Self {
-        LlmConfig {
-            provider: "anthropic".to_string(),
-            api_key_env: "ANTHROPIC_API_KEY".to_string(),
-            model: "claude-sonnet-4-20250514".to_string(),
-            base_url: String::new(),
-        }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
