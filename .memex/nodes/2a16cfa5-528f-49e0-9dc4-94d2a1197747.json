@@ -1,0 +1,28 @@
+{
+  "id": "2a16cfa5-528f-49e0-9dc4-94d2a1197747",
+  "parent_ids": [
+    "abb28756-4345-486f-8ee9-96489c16eb69"
+  ],
+  "git_ref": "chore/remove-llm-references (2af1bad6)",
+  "created_at": "2026-04-12T05:17:06.110879Z",
+  "updated_at": "2026-04-12T05:18:01.380302Z",
+  "summary": {
+    "goal": "Remove dead LlmConfig code and update LLM string references throughout the codebase",
+    "decisions": [
+      "Removed LlmConfig struct and Config.llm field from models.rs — confirmed dead code with no call sites",
+      "Updated string literals in main.rs (about, context doc comment) and graph.rs (header) to drop LLM terminology",
+      "Updated README.md to use neutral language; CLAUDE.md left intact since its LLM references describe tool purpose and agent directives accurately"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/models.rs",
+      "src/main.rs",
+      "src/commands/graph.rs",
+      "README.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

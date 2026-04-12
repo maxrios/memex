@@ -45,7 +45,7 @@ pub fn view() -> Result<()> {
         });
     }
 
-    println!("LLM Conversation Graph");
+    println!("Conversation Graph");
     println!("{}", "═".repeat(50));
 
     for (i, root) in roots.iter().enumerate() {

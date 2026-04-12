@@ -1,8 +1,8 @@
 # memex
 
-A CLI tool for organizing LLM-assisted development work into a versioned, navigable DAG of conversation nodes tied to a software project.
+A CLI tool for organizing AI-assisted development work into a versioned, navigable DAG of conversation nodes tied to a software project.
 
-LLM conversations are ephemeral and flat, but real development is hierarchical and branching. `memex` gives each phase of work a structured node capturing what was built, what was decided, what was rejected, and what remains open. Edges represent context inheritance: each child node was started with knowledge of its parent.
+Conversations are ephemeral and flat, but real development is hierarchical and branching. `memex` gives each phase of work a structured node capturing what was built, what was decided, what was rejected, and what remains open. Edges represent context inheritance: each child node was started with knowledge of its parent.
 
 ---
 
@@ -39,7 +39,7 @@ memex node edit --rejected $'description = "Session-based auth"\nreason = "Requi
 # Mark the node as done
 memex node resolve
 
-# Later: generate a context payload to paste into a new LLM conversation
+# Later: generate a context payload to continue in a new conversation
 memex context --format markdown
 
 # View the full conversation history as a tree
@@ -100,7 +100,7 @@ Transition a node's status between Active, Resolved, and Abandoned.
 
 ### `memex context [id]`
 
-Generate a context payload for LLM injection. Walks the ancestor chain and formats it for pasting into a new conversation.
+Generate a context payload. Walks the ancestor chain and formats it for pasting into a new conversation.
 
 | Flag | Description |
 |---|---|
@@ -130,7 +130,7 @@ The pattern for using `memex` alongside any project:
    ```
 4. **Resolve** — `memex node resolve` when the work is complete
 5. **Commit** — stage source changes and `.memex/` files together
-6. **Next session** — `memex context` generates a formatted ancestor summary to paste into a new LLM conversation, so future sessions pick up where the last left off
+6. **Next session** — `memex context` generates a formatted ancestor summary to paste into a new conversation, so future sessions pick up where the last left off
 
 ---
 
