@@ -68,23 +68,57 @@ pub fn create(
     Ok(())
 }
 
-pub fn edit(id: Option<&str>, summary_toml: Option<&str>) -> Result<()> {
-    use crate::models::NodeSummaryToml;
+pub fn edit(
+    id: Option<&str>,
+    summary_toml: Option<&str>,
+    goal: Option<&str>,
+    decisions: &[String],
+    artifacts: &[String],
+    open_threads: &[String],
+    rejected: &[String],
+) -> Result<()> {
+    use crate::models::{RejectedApproach, NodeSummaryToml};
+
+    let has_additive = goal.is_some()
+        || !decisions.is_empty()
+        || !artifacts.is_empty()
+        || !open_threads.is_empty()
+        || !rejected.is_empty();
+
+    if summary_toml.is_some() && has_additive {
+        anyhow::bail!(
+            "--summary cannot be combined with --goal, --decision, --artifact, --open-thread, or --rejected"
+        );
+    }
 
     let store = GraphStore::open_from_cwd()?;
     let node_id = store.resolve_node_id(id)?;
     let mut node = store.load_node(node_id)?;
 
-    let summary = if let Some(toml_str) = summary_toml {
+    if let Some(toml_str) = summary_toml {
         let parsed: NodeSummaryToml =
             toml::from_str(toml_str).context("Failed to parse --summary TOML")?;
-        NodeSummary::from(parsed)
+        node.summary = NodeSummary::from(parsed);
+    } else if has_additive {
+        if let Some(g) = goal {
+            if g.is_empty() {
+                anyhow::bail!("--goal cannot be empty");
+            }
+            node.summary.goal = g.to_string();
+        }
+        node.summary.decisions.extend_from_slice(decisions);
+        node.summary.key_artifacts.extend_from_slice(artifacts);
+        node.summary.open_threads.extend_from_slice(open_threads);
+        for val in rejected {
+            let approach: RejectedApproach = toml::from_str(val)
+                .context("Failed to parse --rejected TOML (expected: description = \"...\" and reason = \"...\")")?;
+            node.summary.rejected_approaches.push(approach);
+        }
     } else {
         println!("Opening editor to edit node {}...", node.short_id());
-        editor::edit_node_summary(Some(&node.summary))?
-    };
+        node.summary = editor::edit_node_summary(Some(&node.summary))?;
+    }
 
-    node.summary = summary;
     node.updated_at = Utc::now();
     store.save_node(&node)?;
 

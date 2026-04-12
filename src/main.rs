@@ -88,6 +88,26 @@ enum NodeCommands {
         /// Summary as a TOML string (skips editor; for non-interactive/agent use)
         #[arg(long)]
         summary: Option<String>,
+
+        /// Overwrite the goal text
+        #[arg(long)]
+        goal: Option<String>,
+
+        /// Append a decision (repeatable)
+        #[arg(long, num_args = 1, action = clap::ArgAction::Append)]
+        decision: Vec<String>,
+
+        /// Append a key artifact path or name (repeatable)
+        #[arg(long, num_args = 1, action = clap::ArgAction::Append)]
+        artifact: Vec<String>,
+
+        /// Append an open thread (repeatable)
+        #[arg(long = "open-thread", num_args = 1, action = clap::ArgAction::Append)]
+        open_thread: Vec<String>,
+
+        /// Append a rejected approach as TOML with description and reason fields (repeatable)
+        #[arg(long, num_args = 1, action = clap::ArgAction::Append)]
+        rejected: Vec<String>,
     },
 
     /// Show a node's full summary
@@ -148,9 +168,23 @@ fn run(cli: Cli) -> Result<()> {
                 &tags,
                 goal.as_deref(),
             ),
-            NodeCommands::Edit { id, summary } => {
-                commands::node::edit(id.as_deref(), summary.as_deref())
-            }
+            NodeCommands::Edit {
+                id,
+                summary,
+                goal,
+                decision,
+                artifact,
+                open_thread,
+                rejected,
+            } => commands::node::edit(
+                id.as_deref(),
+                summary.as_deref(),
+                goal.as_deref(),
+                &decision,
+                &artifact,
+                &open_thread,
+                &rejected,
+            ),
             NodeCommands::Show { id } => commands::node::show(id.as_deref()),
             NodeCommands::List => commands::node::list(),
             NodeCommands::Resolve { id } => {
