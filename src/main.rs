@@ -46,6 +46,10 @@ enum Commands {
         /// Output format: markdown, xml, or plain
         #[arg(long, default_value = "markdown")]
         format: String,
+
+        /// Max number of ancestor nodes to include (0 = none)
+        #[arg(long, default_value_t = 2)]
+        depth: usize,
     },
 
     /// Search node summaries
@@ -164,9 +168,9 @@ fn run(cli: Cli) -> Result<()> {
             GraphCommands::View => commands::graph::view(),
         },
 
-        Commands::Context { id, format } => {
+        Commands::Context { id, format, depth } => {
             let fmt = OutputFormat::from_str(&format)?;
-            commands::context::run(id.as_deref(), fmt)
+            commands::context::run(id.as_deref(), fmt, depth)
         }
 
         Commands::Search { query } => commands::search::run(&query),

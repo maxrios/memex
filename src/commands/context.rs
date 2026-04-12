@@ -24,7 +24,7 @@ impl OutputFormat {
     }
 }
 
-pub fn run(id: Option<&str>, format: OutputFormat) -> Result<()> {
+pub fn run(id: Option<&str>, format: OutputFormat, depth: usize) -> Result<()> {
     let store = GraphStore::open_from_cwd()?;
     let graph = store.load_graph()?;
     let node_id = store.resolve_node_id(id)?;
@@ -39,6 +39,8 @@ pub fn run(id: Option<&str>, format: OutputFormat) -> Result<()> {
     let path = find_path(root_id, node_id, &node_map)
         .ok_or_else(|| anyhow::anyhow!("Could not find path from root to node {}", node_id))?;
 
+    let path = trim_path(path, depth);
+
     let output = match format {
         OutputFormat::Markdown => generate_markdown(&path, &node_map, node_id)?,
         OutputFormat::Xml => generate_xml(&path, &node_map)?,
@@ -47,6 +49,23 @@ pub fn run(id: Option<&str>, format: OutputFormat) -> Result<()> {
 
     println!("{}", output);
     Ok(())
+}
+
+/// Trim the ancestor section (path[1..len-1]) to at most `depth` nodes,
+/// always keeping the root (path[0]) and target (path[last]).
+fn trim_path(path: Vec<Uuid>, depth: usize) -> Vec<Uuid> {
+    if path.len() <= 2 {
+        return path;
+    }
+    let ancestors = &path[1..path.len() - 1];
+    if ancestors.len() <= depth {
+        return path;
+    }
+    let skip = ancestors.len() - depth;
+    let mut trimmed = vec![path[0]];
+    trimmed.extend_from_slice(&ancestors[skip..]);
+    trimmed.push(*path.last().unwrap());
+    trimmed
 }
 
 /// Find the path (list of node IDs) from `start` to `target` using BFS.
