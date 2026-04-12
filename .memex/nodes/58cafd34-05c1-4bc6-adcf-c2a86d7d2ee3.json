@@ -1,0 +1,25 @@
+{
+  "id": "58cafd34-05c1-4bc6-adcf-c2a86d7d2ee3",
+  "parent_ids": [
+    "2a16cfa5-528f-49e0-9dc4-94d2a1197747"
+  ],
+  "git_ref": "docs/improve-claude-md (b57f2901)",
+  "created_at": "2026-04-12T05:50:15.791483Z",
+  "updated_at": "2026-04-12T05:50:58.379451Z",
+  "summary": {
+    "goal": "Improve CLAUDE.md: fix formatting, sharpen parent selection guidance, remove noise",
+    "decisions": [
+      "replaced 'memex context' with 'memex graph' in step 1 — context is for orientation, graph shows the DAG structure needed for parent selection",
+      "folded 'What to commit' section into step 7 to eliminate duplication",
+      "reframed parent selection around dependency rather than novelty — produces real branching instead of always-linear chains"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "CLAUDE.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
