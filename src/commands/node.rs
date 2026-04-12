@@ -115,10 +115,10 @@ pub fn list() -> Result<()> {
 
     // Header
     println!(
-        "{:<10} {:<10} {:<20} {:<52} Created",
-        "ID", "Status", "GitRef", "Goal"
+        "{:<10} {:<10} {:<10} {:<20} {:<52} Created",
+        "ID", "Parent", "Status", "GitRef", "Goal"
     );
-    println!("{}", "-".repeat(110));
+    println!("{}", "-".repeat(120));
 
     for node in &nodes {
         let active_marker = if state.active_id == Some(node.id) {
@@ -127,6 +127,11 @@ pub fn list() -> Result<()> {
             " "
         };
         let short_id = format!("{}{}", active_marker, node.short_id());
+        let parent = node
+            .parent_ids
+            .first()
+            .map(|id| id.to_string()[..8].to_string())
+            .unwrap_or_else(|| "-".to_string());
         let status = format!("{}", node.status);
         let git_ref = node
             .git_ref
@@ -144,8 +149,8 @@ pub fn list() -> Result<()> {
         let created = node.created_at.format("%Y-%m-%d %H:%M").to_string();
 
         println!(
-            "{:<10} {:<10} {:<20} {:<52} {}",
-            short_id, status, git_ref, goal, created
+            "{:<10} {:<10} {:<10} {:<20} {:<52} {}",
+            short_id, parent, status, git_ref, goal, created
         );
     }
 
