@@ -1,0 +1,3 @@
+{
+  "systemPrompt": "This project uses the memex development workflow. For every code change, always follow the steps in CLAUDE.md (find parent node → branch → create node → implement → summarize → resolve → commit → PR) without being asked."
+}

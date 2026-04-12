@@ -6,6 +6,8 @@
 
 ## Development workflow
 
+> **IMPORTANT:** For any code change, bug fix, or new feature — always execute the steps below without being explicitly asked. Do not write any code before completing steps 1–3 (find parent node, branch, create node).
+
 This project tracks its own development using `memex`. Follow this pattern for every feature or fix:
 
 1. **Find a parent node** - Identify the most relevant resolved node to attach to before branching:
