@@ -68,7 +68,6 @@ impl ConversationNode {
         self.id.to_string()[..8].to_string()
     }
 
-    #[allow(dead_code)]
     pub fn status_icon(&self) -> &str {
         match self.status {
             NodeStatus::Active => "●",
@@ -104,15 +103,6 @@ impl Graph {
         self.edges.push(Edge { from, to });
     }
 
-    /// Returns child IDs for a given node
-    #[allow(dead_code)]
-    pub fn children_of(&self, node_id: Uuid) -> Vec<Uuid> {
-        self.edges
-            .iter()
-            .filter(|e| e.from == node_id)
-            .map(|e| e.to)
-            .collect()
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -41,8 +41,8 @@ pub fn run(id: Option<&str>, format: OutputFormat) -> Result<()> {
 
     let output = match format {
         OutputFormat::Markdown => generate_markdown(&path, &node_map, node_id)?,
-        OutputFormat::Xml => generate_xml(&path, &node_map, node_id)?,
-        OutputFormat::Plain => generate_plain(&path, &node_map, node_id)?,
+        OutputFormat::Xml => generate_xml(&path, &node_map)?,
+        OutputFormat::Plain => generate_plain(&path, &node_map)?,
     };
 
     println!("{}", output);
@@ -199,7 +199,6 @@ fn generate_markdown(
 fn generate_xml(
     path: &[Uuid],
     node_map: &HashMap<Uuid, &ConversationNode>,
-    _target_id: Uuid,
 ) -> Result<String> {
     let mut out = String::new();
     out.push_str("<memex_context>\n");
@@ -316,7 +315,6 @@ fn generate_xml(
 fn generate_plain(
     path: &[Uuid],
     node_map: &HashMap<Uuid, &ConversationNode>,
-    _target_id: Uuid,
 ) -> Result<String> {
     let mut out = String::new();
 
