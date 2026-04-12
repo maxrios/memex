@@ -1,0 +1,21 @@
+{
+  "id": "269bfac9-e21c-42a3-8ed0-6bbc5ead6a17",
+  "parent_ids": [
+    "58cafd34-05c1-4bc6-adcf-c2a86d7d2ee3"
+  ],
+  "git_ref": "docs/parent-node-examples (91b0e58a)",
+  "created_at": "2026-04-12T23:35:13.081887Z",
+  "updated_at": "2026-04-12T23:35:16.110114Z",
+  "summary": {
+    "goal": "Add parent node selection examples to CLAUDE.md",
+    "decisions": [],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "CLAUDE.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
