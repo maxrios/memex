@@ -17,6 +17,9 @@ This project tracks its own development using `memex`. Follow this pattern for e
    - If your work extends a specific prior feature, attach to that feature's node even if it isn't the tip
    - If your work is independent of recent changes, find the most recent resolved node whose scope your work builds on
    - If your work depends directly on what just landed, attach to the active node (the linear case, correct when the dependency is real)
+   - e.g. adding tests for the search command → parent is the node that implemented search, not documentation or cleanup nodes that landed after it
+   - e.g. fixing a crash in `node edit` → parent is the node that introduced `node edit`, not whatever resolved most recently
+   - e.g. adding a new `memex export` command → find the most recent node that touched the CLI structure; skip unrelated docs or refactors that followed it
 
 2. **Branch** - `git checkout -b <type>/<name>` from `main`
 
