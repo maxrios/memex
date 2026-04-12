@@ -67,7 +67,7 @@ Node IDs can be shortened to any unambiguous prefix (e.g. `abc12345` → `abc1`)
 `memex` is used to track its own development. The pattern for any new feature:
 
 1. **Create a branch** - `git checkout -b feat/<name>`
-2. **Create a node** - `memex node create --parent <parent-id>` with a placeholder goal
+2. **Create a node** - `memex node create --parent <parent-id> --goal "<your goal>"` — use the real goal if known, or a short placeholder if scope is still uncertain
 3. **Implement** the feature
 4. **Write the node summary** - `memex node edit` to capture decisions, rejected approaches, and key artifacts
 5. **Resolve the node** - `memex node resolve`

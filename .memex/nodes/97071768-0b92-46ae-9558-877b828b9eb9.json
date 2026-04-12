@@ -1,0 +1,25 @@
+{
+  "id": "97071768-0b92-46ae-9558-877b828b9eb9",
+  "parent_ids": [
+    "9f869ab8-4aa9-499c-b316-a3c563407906"
+  ],
+  "git_ref": "docs/clarify-goal-guidance (ad226b37)",
+  "created_at": "2026-04-12T03:58:13.862146Z",
+  "updated_at": "2026-04-12T03:58:31.175338Z",
+  "summary": {
+    "goal": "clarify --goal guidance in node creation workflow",
+    "decisions": [
+      "Updated CLAUDE.md and README.md to say use the real goal if known, placeholder only when uncertain",
+      "No code changes needed — src/commands/node.rs already handles --goal correctly"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "CLAUDE.md",
+      "README.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

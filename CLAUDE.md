@@ -16,7 +16,7 @@ This project tracks its own development using `memex`. Follow this pattern for e
    - Prefer the most specific ancestor: if a node for `feat/search` exists and you're extending search, use it rather than the root
 
 2. **Branch** - `git checkout -b <type>/<name>` from `main`
-3. **Node** - `memex node create --parent <parent-id> --goal "<placeholder goal>"` before writing any code. You'll fill in the real summary with `memex node edit` later.
+3. **Node** - `memex node create --parent <parent-id> --goal "<your goal here>"` before writing any code. Use the real goal if you already know it; a short placeholder is fine when the scope is still uncertain.
 4. **Implement** the feature
 5. **Summarize** - `memex node edit` to write decisions, rejected approaches, and key artifacts. Do this yourself; do not add LLM API calls to automate it.
 6. **Resolve** - `memex node resolve`
