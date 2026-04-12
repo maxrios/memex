@@ -102,7 +102,6 @@ impl Graph {
     pub fn add_edge(&mut self, from: Uuid, to: Uuid) {
         self.edges.push(Edge { from, to });
     }
-
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -232,17 +231,7 @@ impl Default for StorageConfig {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct UiConfig {
     pub editor: String,
-    pub web_port: u16,
-}
-
-impl Default for UiConfig {
-    fn default() -> Self {
-        UiConfig {
-            editor: String::new(),
-            web_port: 7777,
-        }
-    }
 }

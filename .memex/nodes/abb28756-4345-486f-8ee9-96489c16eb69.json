@@ -1,0 +1,26 @@
+{
+  "id": "abb28756-4345-486f-8ee9-96489c16eb69",
+  "parent_ids": [
+    "8403a5cb-721b-4c62-b019-2d02ecff7c82"
+  ],
+  "git_ref": "docs/readme-improvement (415581b9)",
+  "created_at": "2026-04-12T04:42:11.020472Z",
+  "updated_at": "2026-04-12T04:43:05.951124Z",
+  "summary": {
+    "goal": "Improve README to document all existing features (tags, additive edit flags, context formats) and generalize the workflow section",
+    "decisions": [
+      "Replaced flat command table with subsections including all flags",
+      "Generalized workflow section to apply to any project, not just memex-on-memex",
+      "Documented tags, additive edit flags, and context format options that were previously undocumented",
+      "Merged What gets committed and Storage layout into single Storage section"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "README.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

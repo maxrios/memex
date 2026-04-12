@@ -28,13 +28,19 @@ cargo run -- <command>
 memex init
 
 # Create a node for a new feature
-memex node create --parent <root-id>
+memex node create --parent <root-id> --goal "Add user authentication" --tag auth
 
-# After your work session, fill in the summary
-memex node edit
+# During implementation, record decisions and artifacts incrementally
+memex node edit --decision "Used JWT over session cookies for statelessness"
+memex node edit --artifact "src/auth/mod.rs"
+memex node edit --open-thread "Rate limiting not yet implemented"
+memex node edit --rejected $'description = "Session-based auth"\nreason = "Requires sticky sessions, complicates horizontal scaling"'
 
-# Generate a context payload to paste into a new LLM conversation
-memex context
+# Mark the node as done
+memex node resolve
+
+# Later: generate a context payload to paste into a new LLM conversation
+memex context --format markdown
 
 # View the full conversation history as a tree
 memex graph view
@@ -44,83 +50,93 @@ memex graph view
 
 ## Commands
 
-| Command | Description |
-|---|---|
-| `memex init` | Initialize a graph in the current project |
-| `memex node create` | Create a new conversation node |
-| `memex node edit [id]` | Edit a node's summary in `$EDITOR` |
-| `memex node show [id]` | Display a node's full summary |
-| `memex node list` | List all nodes with parent IDs, status, git ref, and goal |
-| `memex node resolve [id]` | Mark a node as resolved |
-| `memex node abandon [id]` | Mark a node as abandoned |
-| `memex node reopen [id]` | Reopen a resolved or abandoned node |
-| `memex context [id] [--depth N]` | Generate a context payload for LLM injection (default: 2 ancestors) |
-| `memex graph view` | ASCII tree of the full conversation graph |
-| `memex search <query>` | Search across all node summaries |
-
 Node IDs can be shortened to any unambiguous prefix (e.g. `abc12345` → `abc1`).
 
+### `memex init`
+
+Initialize a `.memex/` directory in the current project.
+
+### `memex node create`
+
+Create a new conversation node.
+
+| Flag | Description |
+|---|---|
+| `--parent <id>` | Parent node ID |
+| `--goal "..."` | One-line goal for this node |
+| `--git-ref <ref>` | Git branch or tag to associate |
+| `--tag <tag>` | Tag the node (repeatable) |
+
+### `memex node edit [id]`
+
+Without flags, opens `$EDITOR` with a TOML template for bulk editing. With additive flags, updates individual fields without opening an editor:
+
+| Flag | Effect |
+|---|---|
+| `--goal "..."` | Overwrite the goal |
+| `--decision "..."` | Append a decision (repeatable) |
+| `--artifact "..."` | Append a key artifact (repeatable) |
+| `--open-thread "..."` | Append an open thread (repeatable) |
+| `--rejected '...'` | Append a rejected approach as inline TOML (repeatable) |
+| `--summary "..."` | Replace the entire summary from TOML (mutually exclusive with the flags above) |
+
+The `--rejected` flag expects inline TOML with `description` and `reason` fields:
+
+```bash
+memex node edit --rejected $'description = "Alternative approach"\nreason = "Why it was rejected"'
+```
+
+### `memex node show [id]`
+
+Display a node's full summary.
+
+### `memex node list`
+
+List all nodes with IDs, parent IDs, status, git ref, and goal.
+
+### `memex node resolve [id]` / `abandon [id]` / `reopen [id]`
+
+Transition a node's status between Active, Resolved, and Abandoned.
+
+### `memex context [id]`
+
+Generate a context payload for LLM injection. Walks the ancestor chain and formats it for pasting into a new conversation.
+
+| Flag | Description |
+|---|---|
+| `--depth <N>` | Number of ancestors to include (default: 2) |
+| `--format <fmt>` | Output format: `markdown` (default), `xml`, `plain` |
+
+### `memex graph view`
+
+ASCII tree of the full conversation graph. Shows status icons and marks the active node.
+
+### `memex search <query>`
+
+Full-text search across all node summaries, including goals, decisions, artifacts, open threads, rejected approaches, and tags.
+
 ---
 
-## Development Workflow
+## Workflow
 
-`memex` is used to track its own development. The pattern for any new feature:
+The pattern for using `memex` alongside any project:
 
-1. **Create a branch** - `git checkout -b feat/<name>`
-2. **Create a node** - `memex node create --parent <parent-id> --goal "<your goal>"` — use the real goal if known, or a short placeholder if scope is still uncertain
-3. **Implement** the feature
-4. **Write the node summary** - `memex node edit` to capture decisions, rejected approaches, and key artifacts
-5. **Resolve the node** - `memex node resolve`
-6. **Commit and push** - stage source changes and open a PR
-
-The `memex context` command generates a formatted summary of the ancestor chain suitable for pasting into a new LLM conversation, so future sessions can pick up where the last one left off without re-explaining history.
-
----
-
-## Configuration
-
-`memex init` creates `.memex/config.toml` at the project root.
-
-```toml
-[git]
-auto_prompt_on_branch = true
-annotate_on_commit = false
-
-[storage]
-track_in_git = true
-transcript_storage = "none"
-
-[ui]
-editor = ""      # defaults to $EDITOR
-web_port = 7777
-```
-
-### What gets committed
-
-| Path | Committed | Notes |
-|---|---|---|
-| `.memex/config.toml` | Yes | Shared project settings |
-| `.memex/graph.json` | Yes | DAG edges and root node pointer |
-| `.memex/nodes/*.json` | Yes | Full conversation node history |
-| `.memex/state.json` | No | Local session state (active node) |
-| `.memex/transcripts/` | No | Raw transcripts, if stored locally |
-
-### Storage layout
-
-```
-.memex/
-  config.toml       # committed - shared settings
-  graph.json        # committed - DAG structure
-  nodes/
-    <uuid>.json     # committed - one file per node
-  state.json        # gitignored - local session state
-```
+1. **Branch** — `git checkout -b <type>/<name>`
+2. **Create a node** — `memex node create --parent <parent-id> --goal "what you're working on"`
+3. **Implement** — as you work, record decisions and artifacts incrementally:
+   ```
+   memex node edit --decision "Chose X over Y because ..."
+   memex node edit --artifact "src/new_module.rs"
+   ```
+4. **Resolve** — `memex node resolve` when the work is complete
+5. **Commit** — stage source changes and `.memex/` files together
+6. **Next session** — `memex context` generates a formatted ancestor summary to paste into a new LLM conversation, so future sessions pick up where the last left off
 
 ---
 
 ## Node Summary Format
 
-When editing a node (`memex node edit`), a TOML template is opened in `$EDITOR`:
+When editing a node with `$EDITOR` (`memex node edit` with no flags), a TOML template is opened:
 
 ```toml
 goal = "What this conversation was working toward"
@@ -140,4 +156,45 @@ open_threads = [
 key_artifacts = [
   "src/relevant_file.rs",
 ]
+```
+
+You can also build this incrementally using the additive flags on `memex node edit` — see [Commands](#memex-node-edit-id) above.
+
+---
+
+## Configuration
+
+`memex init` creates `.memex/config.toml` at the project root.
+
+```toml
+[git]
+auto_prompt_on_branch = true
+annotate_on_commit = false
+
+[storage]
+track_in_git = true
+transcript_storage = "none"
+
+[ui]
+editor = ""      # defaults to $EDITOR
+```
+
+---
+
+## Storage
+
+| Path | Committed | Notes |
+|---|---|---|
+| `.memex/config.toml` | Yes | Shared project settings |
+| `.memex/graph.json` | Yes | DAG edges and root node pointer |
+| `.memex/nodes/*.json` | Yes | Full conversation node history |
+| `.memex/state.json` | No | Local session state (active node) |
+
+```
+.memex/
+  config.toml       # committed - shared settings
+  graph.json        # committed - DAG structure
+  nodes/
+    <uuid>.json     # committed - one file per node
+  state.json        # gitignored - local session state
 ```
