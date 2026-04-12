@@ -95,7 +95,7 @@ pub fn run(query: &str) -> Result<()> {
 }
 
 /// Simple case-insensitive highlight: wraps matches in >> << markers.
-fn highlight(text: &str, query: &str) -> String {
+pub(crate) fn highlight(text: &str, query: &str) -> String {
     let lower = text.to_lowercase();
     let query_lower = query.to_lowercase();
     let mut result = String::new();
@@ -111,4 +111,55 @@ fn highlight(text: &str, query: &str) -> String {
     }
     result.push_str(&text[pos..]);
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn highlight_exact_match() {
+        assert_eq!(highlight("hello world", "world"), "hello >>world<<");
+    }
+
+    #[test]
+    fn highlight_case_insensitive() {
+        assert_eq!(highlight("Hello World", "hello"), ">>Hello<< World");
+    }
+
+    #[test]
+    fn highlight_multiple_occurrences() {
+        assert_eq!(highlight("foo bar foo", "foo"), ">>foo<< bar >>foo<<");
+    }
+
+    #[test]
+    fn highlight_no_match() {
+        assert_eq!(highlight("hello world", "xyz"), "hello world");
+    }
+
+    #[test]
+    fn highlight_empty_text() {
+        assert_eq!(highlight("", "foo"), "");
+    }
+
+    #[test]
+    fn highlight_match_at_start() {
+        assert_eq!(highlight("start of string", "start"), ">>start<< of string");
+    }
+
+    #[test]
+    fn highlight_match_at_end() {
+        assert_eq!(highlight("at the end", "end"), "at the >>end<<");
+    }
+
+    #[test]
+    fn highlight_entire_string() {
+        assert_eq!(highlight("exact", "exact"), ">>exact<<");
+    }
+
+    #[test]
+    fn highlight_multibyte_utf8_smoke() {
+        // "café" has a 2-byte é; the match is after it — verify no byte-boundary panic
+        assert_eq!(highlight("café latte", "latte"), "café >>latte<<");
+    }
 }

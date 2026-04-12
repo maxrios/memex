@@ -208,5 +208,283 @@ impl GraphStore {
             ),
         }
     }
+}
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::{Duration, TimeZone, Utc};
+    use tempfile::TempDir;
+
+    fn make_store() -> (TempDir, GraphStore) {
+        let tmp = TempDir::new().unwrap();
+        let store = GraphStore::open(tmp.path().to_path_buf());
+        store.initialize().unwrap();
+        (tmp, store)
+    }
+
+    // --- Discovery ---
+
+    #[test]
+    fn find_returns_none_without_memex() {
+        let tmp = TempDir::new().unwrap();
+        assert!(GraphStore::find(tmp.path()).is_none());
+    }
+
+    #[test]
+    fn find_returns_root_when_memex_present() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join(".memex")).unwrap();
+        let found = GraphStore::find(tmp.path()).unwrap();
+        assert_eq!(found, tmp.path());
+    }
+
+    #[test]
+    fn find_walks_up_tree() {
+        let tmp = TempDir::new().unwrap();
+        fs::create_dir_all(tmp.path().join(".memex")).unwrap();
+        let nested = tmp.path().join("a").join("b").join("c");
+        fs::create_dir_all(&nested).unwrap();
+        let found = GraphStore::find(&nested).unwrap();
+        assert_eq!(found, tmp.path());
+    }
+
+    // --- Initialization ---
+
+    #[test]
+    fn is_initialized_false_before_init() {
+        let tmp = TempDir::new().unwrap();
+        let store = GraphStore::open(tmp.path().to_path_buf());
+        assert!(!store.is_initialized());
+    }
+
+    #[test]
+    fn is_initialized_true_after_init() {
+        let (_tmp, store) = make_store();
+        assert!(store.is_initialized());
+    }
+
+    #[test]
+    fn initialize_creates_structure() {
+        let tmp = TempDir::new().unwrap();
+        let store = GraphStore::open(tmp.path().to_path_buf());
+        store.initialize().unwrap();
+        assert!(store.memex_dir().is_dir());
+        assert!(store.nodes_dir().is_dir());
+        assert!(store.config_path().exists());
+        let config_content = fs::read_to_string(store.config_path()).unwrap();
+        assert!(!config_content.is_empty());
+    }
+
+    #[test]
+    fn initialize_does_not_overwrite_config() {
+        let (_tmp, store) = make_store();
+        fs::write(store.config_path(), "custom = true").unwrap();
+        store.initialize().unwrap();
+        let content = fs::read_to_string(store.config_path()).unwrap();
+        assert_eq!(content, "custom = true");
+    }
+
+    // --- Graph I/O ---
+
+    #[test]
+    fn save_and_load_graph_roundtrip() {
+        let (_tmp, store) = make_store();
+        let mut g = Graph::new();
+        let root = Uuid::new_v4();
+        let child = Uuid::new_v4();
+        g.root_id = Some(root);
+        g.add_edge(root, child);
+        g.add_edge(child, Uuid::new_v4());
+
+        store.save_graph(&g).unwrap();
+        let loaded = store.load_graph().unwrap();
+
+        assert_eq!(loaded.root_id, Some(root));
+        assert_eq!(loaded.edges.len(), 2);
+        assert_eq!(loaded.edges[0].from, root);
+        assert_eq!(loaded.edges[0].to, child);
+    }
+
+    #[test]
+    fn load_graph_returns_empty_when_missing() {
+        let (_tmp, store) = make_store();
+        // graph.json was not written during initialize()
+        let g = store.load_graph().unwrap();
+        assert!(g.root_id.is_none());
+        assert!(g.edges.is_empty());
+    }
+
+    // --- Node I/O ---
+
+    #[test]
+    fn save_and_load_node_roundtrip() {
+        let (_tmp, store) = make_store();
+        let mut node = ConversationNode::new(vec![], None, vec![]);
+        node.summary.goal = "Test goal".to_string();
+        node.summary.decisions.push("Decision A".to_string());
+
+        store.save_node(&node).unwrap();
+        let loaded = store.load_node(node.id).unwrap();
+
+        assert_eq!(loaded.id, node.id);
+        assert_eq!(loaded.summary.goal, "Test goal");
+        assert_eq!(loaded.summary.decisions, vec!["Decision A"]);
+    }
+
+    #[test]
+    fn load_node_error_on_missing() {
+        let (_tmp, store) = make_store();
+        let result = store.load_node(Uuid::new_v4());
+        assert!(result.is_err());
+        let msg = result.unwrap_err().to_string();
+        assert!(
+            msg.contains("Failed to read node"),
+            "unexpected error: {}",
+            msg
+        );
+    }
+
+    #[test]
+    fn load_all_nodes_empty_without_nodes() {
+        let (_tmp, store) = make_store();
+        let nodes = store.load_all_nodes().unwrap();
+        assert!(nodes.is_empty());
+    }
+
+    #[test]
+    fn load_all_nodes_sorted_by_created_at() {
+        let (_tmp, store) = make_store();
+        let base = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+
+        let mut n1 = ConversationNode::new(vec![], None, vec![]);
+        n1.created_at = base;
+        n1.summary.goal = "First".to_string();
+
+        let mut n2 = ConversationNode::new(vec![], None, vec![]);
+        n2.created_at = base + Duration::seconds(10);
+        n2.summary.goal = "Second".to_string();
+
+        let mut n3 = ConversationNode::new(vec![], None, vec![]);
+        n3.created_at = base + Duration::seconds(20);
+        n3.summary.goal = "Third".to_string();
+
+        // Save in reverse order to ensure sorting is actually applied
+        store.save_node(&n3).unwrap();
+        store.save_node(&n1).unwrap();
+        store.save_node(&n2).unwrap();
+
+        let loaded = store.load_all_nodes().unwrap();
+        assert_eq!(loaded.len(), 3);
+        assert_eq!(loaded[0].summary.goal, "First");
+        assert_eq!(loaded[1].summary.goal, "Second");
+        assert_eq!(loaded[2].summary.goal, "Third");
+    }
+
+    #[test]
+    fn load_all_nodes_ignores_non_json_files() {
+        let (_tmp, store) = make_store();
+        let node = ConversationNode::new(vec![], None, vec![]);
+        store.save_node(&node).unwrap();
+        fs::write(store.nodes_dir().join("readme.txt"), "ignore me").unwrap();
+
+        let nodes = store.load_all_nodes().unwrap();
+        assert_eq!(nodes.len(), 1);
+    }
+
+    // --- State I/O ---
+
+    #[test]
+    fn save_and_load_state_roundtrip() {
+        let (_tmp, store) = make_store();
+        let id = Uuid::new_v4();
+        store.set_active_id(id).unwrap();
+        let active = store.get_active_id().unwrap();
+        assert_eq!(active, Some(id));
+    }
+
+    #[test]
+    fn load_state_returns_none_when_missing() {
+        let (_tmp, store) = make_store();
+        let state = store.load_state().unwrap();
+        assert!(state.active_id.is_none());
+    }
+
+    // --- ID resolution ---
+
+    #[test]
+    fn resolve_node_id_uses_active_when_none() {
+        let (_tmp, store) = make_store();
+        let node = ConversationNode::new(vec![], None, vec![]);
+        store.save_node(&node).unwrap();
+        store.set_active_id(node.id).unwrap();
+
+        let resolved = store.resolve_node_id(None).unwrap();
+        assert_eq!(resolved, node.id);
+    }
+
+    #[test]
+    fn resolve_node_id_errors_without_active() {
+        let (_tmp, store) = make_store();
+        let result = store.resolve_node_id(None);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("No active node"));
+    }
+
+    #[test]
+    fn resolve_node_id_uses_prefix() {
+        let (_tmp, store) = make_store();
+        let node = ConversationNode::new(vec![], None, vec![]);
+        store.save_node(&node).unwrap();
+
+        let resolved = store.resolve_node_id(Some(&node.short_id())).unwrap();
+        assert_eq!(resolved, node.id);
+    }
+
+    #[test]
+    fn find_node_by_prefix_exact_uuid() {
+        let (_tmp, store) = make_store();
+        let node = ConversationNode::new(vec![], None, vec![]);
+        store.save_node(&node).unwrap();
+
+        let found = store.find_node_id_by_prefix(&node.id.to_string()).unwrap();
+        assert_eq!(found, node.id);
+    }
+
+    #[test]
+    fn find_node_by_prefix_short() {
+        let (_tmp, store) = make_store();
+        let node = ConversationNode::new(vec![], None, vec![]);
+        store.save_node(&node).unwrap();
+
+        let prefix = &node.id.to_string()[..6];
+        let found = store.find_node_id_by_prefix(prefix).unwrap();
+        assert_eq!(found, node.id);
+    }
+
+    #[test]
+    fn find_node_by_prefix_ambiguous() {
+        let (_tmp, store) = make_store();
+        let mut n1 = ConversationNode::new(vec![], None, vec![]);
+        n1.id = Uuid::parse_str("aaaaaaaa-1111-1111-1111-111111111111").unwrap();
+        let mut n2 = ConversationNode::new(vec![], None, vec![]);
+        n2.id = Uuid::parse_str("aaaaaaaa-2222-2222-2222-222222222222").unwrap();
+
+        store.save_node(&n1).unwrap();
+        store.save_node(&n2).unwrap();
+
+        let result = store.find_node_id_by_prefix("aaaaaaaa");
+        assert!(result.is_err());
+        let msg = result.unwrap_err().to_string();
+        assert!(msg.contains("Ambiguous"), "unexpected error: {}", msg);
+    }
+
+    #[test]
+    fn find_node_by_prefix_not_found() {
+        let (_tmp, store) = make_store();
+        let result = store.find_node_id_by_prefix("00000000");
+        assert!(result.is_err());
+        let msg = result.unwrap_err().to_string();
+        assert!(msg.contains("No node found"), "unexpected error: {}", msg);
+    }
 }

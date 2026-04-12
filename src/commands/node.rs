@@ -77,7 +77,7 @@ pub fn edit(
     open_threads: &[String],
     rejected: &[String],
 ) -> Result<()> {
-    use crate::models::{RejectedApproach, NodeSummaryToml};
+    use crate::models::{NodeSummaryToml, RejectedApproach};
 
     let has_additive = goal.is_some()
         || !decisions.is_empty()
