@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 use uuid::Uuid;
 
-use crate::models::{ConversationNode, NodeStatus};
+use crate::models::ConversationNode;
 use crate::store::GraphStore;
 
 pub fn view() -> Result<()> {
@@ -71,11 +71,7 @@ fn print_subtree(
 
     if let Some(node) = node_map.get(&node_id) {
         let short_id = &node.id.to_string()[..8];
-        let status_icon = match node.status {
-            NodeStatus::Active => "●",
-            NodeStatus::Resolved => "✓",
-            NodeStatus::Abandoned => "✗",
-        };
+        let status_icon = node.status_icon();
 
         let active_marker = if active_id == Some(node.id) {
             " [*]"

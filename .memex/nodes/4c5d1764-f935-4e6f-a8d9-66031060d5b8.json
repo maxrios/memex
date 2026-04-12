@@ -1,0 +1,29 @@
+{
+  "id": "4c5d1764-f935-4e6f-a8d9-66031060d5b8",
+  "parent_ids": [
+    "18f50221-c31f-4c7f-8d53-5ea9c91e01ff"
+  ],
+  "git_ref": "chore/remove-dead-code (478cb753)",
+  "created_at": "2026-04-12T02:31:04.421596Z",
+  "updated_at": "2026-04-12T02:32:10.840649Z",
+  "summary": {
+    "goal": "Remove unused dead code and redundant logic",
+    "decisions": [
+      "Removed #[allow(dead_code)] from status_icon() and wired graph.rs to call it via node.status_icon() — eliminates the duplicate inline match",
+      "Removed children_of() from Graph impl — never called; graph.rs builds its own children HashMap once up front which is a different access pattern",
+      "Removed load_config() from GraphStore — never called by any command; Config is only loaded implicitly during init",
+      "Removed _target_id parameter from generate_xml() and generate_plain() in context.rs — unused in both bodies; generate_markdown() keeps its target_id (it uses it at lines 148 and 153)"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/models.rs",
+      "src/commands/graph.rs",
+      "src/store.rs",
+      "src/commands/context.rs"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

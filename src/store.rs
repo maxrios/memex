@@ -209,17 +209,4 @@ impl GraphStore {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Config
-    // -------------------------------------------------------------------------
-
-    #[allow(dead_code)]
-    pub fn load_config(&self) -> Result<Config> {
-        let path = self.config_path();
-        if !path.exists() {
-            return Ok(Config::default());
-        }
-        let data = fs::read_to_string(&path).context("Failed to read config.toml")?;
-        toml::from_str(&data).context("Failed to parse config.toml")
-    }
 }
