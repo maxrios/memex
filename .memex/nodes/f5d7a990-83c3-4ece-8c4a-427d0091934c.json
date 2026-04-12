@@ -1,0 +1,29 @@
+{
+  "id": "f5d7a990-83c3-4ece-8c4a-427d0091934c",
+  "parent_ids": [
+    "4c5d1764-f935-4e6f-a8d9-66031060d5b8"
+  ],
+  "git_ref": "fix/node-list-parent-id (af7b6a69)",
+  "created_at": "2026-04-12T03:26:16.783376Z",
+  "updated_at": "2026-04-12T03:27:53.871960Z",
+  "summary": {
+    "goal": "Add Parent column to node list",
+    "decisions": [
+      "Use parent_ids.first() from the node model - no graph load needed",
+      "8-char short ID matches the existing short_id() convention"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Load full graph to resolve parent names",
+        "reason": "Unnecessary complexity; short ID is sufficient for parent selection"
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/commands/node.rs"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
