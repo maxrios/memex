@@ -20,7 +20,18 @@ This project tracks its own development using `memex`. Follow this pattern for e
 2. **Branch** - `git checkout -b <type>/<name>` from `main`
 3. **Node** - `memex node create --parent <parent-id> --goal "<your goal here>"` before writing any code. Use the real goal if you already know it; a short placeholder is fine when the scope is still uncertain.
 4. **Implement** the feature
-5. **Summarize** - `memex node edit` to write decisions, rejected approaches, and key artifacts. Do this yourself; do not add LLM API calls to automate it.
+5. **Summarize** - Record decisions, artifacts, and rejected approaches incrementally as you work using additive flags. Do this yourself; do not add LLM API calls to automate it.
+
+   Preferred: write incrementally during implementation so the record builds up as you go:
+   ```
+   memex node edit --decision "reason you made a key choice"
+   memex node edit --artifact "path/to/key/file.rs"
+   memex node edit --open-thread "question to revisit later"
+   memex node edit --rejected $'description = "Alternative approach"\nreason = "Why rejected"'
+   memex node edit --goal "Updated goal if scope changed"
+   ```
+   Each flag appends to (or overwrites for `--goal`) the current node without touching other fields.
+   Use `--summary` only for a full bulk replacement (e.g. bootstrapping from a plan).
 6. **Resolve** - `memex node resolve`
 7. **Commit** source changes and the updated `.memex/` files together
 8. **Push** and open a PR
