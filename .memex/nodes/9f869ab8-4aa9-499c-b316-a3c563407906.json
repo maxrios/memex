@@ -1,0 +1,27 @@
+{
+  "id": "9f869ab8-4aa9-499c-b316-a3c563407906",
+  "parent_ids": [
+    "f5d7a990-83c3-4ece-8c4a-427d0091934c"
+  ],
+  "git_ref": "feat/context-depth (ae540a9a)",
+  "created_at": "2026-04-12T03:46:40.421634Z",
+  "updated_at": "2026-04-12T03:48:01.778497Z",
+  "summary": {
+    "goal": "Add --depth N flag to memex context to limit ancestor chain noise",
+    "decisions": [
+      "Default depth=2: shows at most 2 ancestors in the Ancestor Context section; root (Project Context) is always shown",
+      "trim_path() helper slices path[1..len-1] to last `depth` nodes, keeping path[0] (root) and path[last] (target) unconditionally",
+      "No changes to generate_markdown/xml/plain — they receive a shorter path and render identically",
+      "depth=0 suppresses all ancestors; depth=N>=actual collapses to full output"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/commands/context.rs",
+      "src/main.rs"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

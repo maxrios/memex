@@ -54,7 +54,7 @@ memex graph view
 | `memex node resolve [id]` | Mark a node as resolved |
 | `memex node abandon [id]` | Mark a node as abandoned |
 | `memex node reopen [id]` | Reopen a resolved or abandoned node |
-| `memex context [id]` | Generate a context payload for LLM injection |
+| `memex context [id] [--depth N]` | Generate a context payload for LLM injection (default: 2 ancestors) |
 | `memex graph view` | ASCII tree of the full conversation graph |
 | `memex search <query>` | Search across all node summaries |
 
