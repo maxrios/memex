@@ -53,7 +53,7 @@ pub fn run(id: Option<&str>, format: OutputFormat, depth: usize) -> Result<()> {
 
 /// Trim the ancestor section (path[1..len-1]) to at most `depth` nodes,
 /// always keeping the root (path[0]) and target (path[last]).
-fn trim_path(path: Vec<Uuid>, depth: usize) -> Vec<Uuid> {
+pub(crate) fn trim_path(path: Vec<Uuid>, depth: usize) -> Vec<Uuid> {
     if path.len() <= 2 {
         return path;
     }
@@ -69,7 +69,7 @@ fn trim_path(path: Vec<Uuid>, depth: usize) -> Vec<Uuid> {
 }
 
 /// Find the path (list of node IDs) from `start` to `target` using BFS.
-fn find_path(
+pub(crate) fn find_path(
     start: Uuid,
     target: Uuid,
     node_map: &HashMap<Uuid, &ConversationNode>,
@@ -215,10 +215,7 @@ fn generate_markdown(
     Ok(out)
 }
 
-fn generate_xml(
-    path: &[Uuid],
-    node_map: &HashMap<Uuid, &ConversationNode>,
-) -> Result<String> {
+fn generate_xml(path: &[Uuid], node_map: &HashMap<Uuid, &ConversationNode>) -> Result<String> {
     let mut out = String::new();
     out.push_str("<memex_context>\n");
 
@@ -331,10 +328,7 @@ fn generate_xml(
     Ok(out)
 }
 
-fn generate_plain(
-    path: &[Uuid],
-    node_map: &HashMap<Uuid, &ConversationNode>,
-) -> Result<String> {
+fn generate_plain(path: &[Uuid], node_map: &HashMap<Uuid, &ConversationNode>) -> Result<String> {
     let mut out = String::new();
 
     if path.is_empty() {
@@ -420,4 +414,194 @@ fn xml_escape(s: &str) -> String {
         .replace('>', "&gt;")
         .replace('"', "&quot;")
         .replace('\'', "&apos;")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::{NodeStatus, NodeSummary};
+    use chrono::Utc;
+
+    fn make_node(id: Uuid, parent_ids: Vec<Uuid>) -> ConversationNode {
+        ConversationNode {
+            id,
+            parent_ids,
+            git_ref: None,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            summary: NodeSummary {
+                goal: format!("Goal {}", &id.to_string()[..8]),
+                ..Default::default()
+            },
+            raw_transcript_ref: None,
+            tags: vec![],
+            status: NodeStatus::Active,
+        }
+    }
+
+    fn node_map(nodes: &[ConversationNode]) -> HashMap<Uuid, &ConversationNode> {
+        nodes.iter().map(|n| (n.id, n)).collect()
+    }
+
+    // --- find_path ---
+
+    #[test]
+    fn find_path_start_equals_target() {
+        let id = Uuid::new_v4();
+        let n = make_node(id, vec![]);
+        let nodes = vec![n];
+        let map = node_map(&nodes);
+        assert_eq!(find_path(id, id, &map), Some(vec![id]));
+    }
+
+    #[test]
+    fn find_path_direct_parent_child() {
+        let root_id = Uuid::new_v4();
+        let child_id = Uuid::new_v4();
+        let root = make_node(root_id, vec![]);
+        let child = make_node(child_id, vec![root_id]);
+        let nodes = vec![root, child];
+        let map = node_map(&nodes);
+        assert_eq!(
+            find_path(root_id, child_id, &map),
+            Some(vec![root_id, child_id])
+        );
+    }
+
+    #[test]
+    fn find_path_multi_hop() {
+        let a = Uuid::new_v4();
+        let b = Uuid::new_v4();
+        let c = Uuid::new_v4();
+        let na = make_node(a, vec![]);
+        let nb = make_node(b, vec![a]);
+        let nc = make_node(c, vec![b]);
+        let nodes = vec![na, nb, nc];
+        let map = node_map(&nodes);
+        assert_eq!(find_path(a, c, &map), Some(vec![a, b, c]));
+    }
+
+    #[test]
+    fn find_path_branching_dag() {
+        let root = Uuid::new_v4();
+        let b1 = Uuid::new_v4();
+        let b2 = Uuid::new_v4();
+        let g = Uuid::new_v4();
+        let n_root = make_node(root, vec![]);
+        let n_b1 = make_node(b1, vec![root]);
+        let n_b2 = make_node(b2, vec![root]);
+        let n_g = make_node(g, vec![b2]);
+        let nodes = vec![n_root, n_b1, n_b2, n_g];
+        let map = node_map(&nodes);
+        let path = find_path(root, g, &map).unwrap();
+        assert_eq!(path[0], root);
+        assert_eq!(*path.last().unwrap(), g);
+        assert!(path.contains(&b2));
+        assert!(!path.contains(&b1));
+    }
+
+    #[test]
+    fn find_path_unreachable_target_returns_singleton() {
+        let start = Uuid::new_v4();
+        let target = Uuid::new_v4();
+        let n_start = make_node(start, vec![]);
+        let n_target = make_node(target, vec![]); // no relationship to start
+        let nodes = vec![n_start, n_target];
+        let map = node_map(&nodes);
+        // Contract: fallback returns Some([target]) when target is not reachable from start
+        assert_eq!(find_path(start, target, &map), Some(vec![target]));
+    }
+
+    // --- trim_path ---
+
+    #[test]
+    fn trim_path_empty() {
+        let result: Vec<Uuid> = trim_path(vec![], 5);
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn trim_path_single_node() {
+        let a = Uuid::new_v4();
+        assert_eq!(trim_path(vec![a], 2), vec![a]);
+    }
+
+    #[test]
+    fn trim_path_two_nodes_any_depth() {
+        let (a, b) = (Uuid::new_v4(), Uuid::new_v4());
+        // Early return fires regardless of depth
+        assert_eq!(trim_path(vec![a, b], 0), vec![a, b]);
+        assert_eq!(trim_path(vec![a, b], 99), vec![a, b]);
+    }
+
+    #[test]
+    fn trim_path_within_depth() {
+        let (r, a1, a2, t) = (
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+        );
+        let path = vec![r, a1, a2, t];
+        // 2 ancestors, depth=3 → no trimming
+        assert_eq!(trim_path(path.clone(), 3), path);
+    }
+
+    #[test]
+    fn trim_path_truncates_oldest() {
+        let (r, a1, a2, a3, t) = (
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+        );
+        let path = vec![r, a1, a2, a3, t];
+        // 3 ancestors, depth=2 → skip oldest (a1), keep [a2, a3]
+        assert_eq!(trim_path(path, 2), vec![r, a2, a3, t]);
+    }
+
+    #[test]
+    fn trim_path_depth_zero() {
+        let (r, a1, a2, t) = (
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+        );
+        let path = vec![r, a1, a2, t];
+        // depth=0 → no ancestors kept, just root and target
+        assert_eq!(trim_path(path, 0), vec![r, t]);
+    }
+
+    // --- OutputFormat ---
+
+    #[test]
+    fn output_format_from_str_variants() {
+        assert_eq!(
+            OutputFormat::from_str("markdown").unwrap(),
+            OutputFormat::Markdown
+        );
+        assert_eq!(
+            OutputFormat::from_str("md").unwrap(),
+            OutputFormat::Markdown
+        );
+        assert_eq!(
+            OutputFormat::from_str("MARKDOWN").unwrap(),
+            OutputFormat::Markdown
+        );
+        assert_eq!(OutputFormat::from_str("xml").unwrap(), OutputFormat::Xml);
+        assert_eq!(
+            OutputFormat::from_str("plain").unwrap(),
+            OutputFormat::Plain
+        );
+        assert_eq!(OutputFormat::from_str("text").unwrap(), OutputFormat::Plain);
+    }
+
+    #[test]
+    fn output_format_from_str_invalid() {
+        let result = OutputFormat::from_str("json");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Unknown format"));
+    }
 }

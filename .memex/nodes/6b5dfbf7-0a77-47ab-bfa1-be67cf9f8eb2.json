@@ -1,0 +1,32 @@
+{
+  "id": "6b5dfbf7-0a77-47ab-bfa1-be67cf9f8eb2",
+  "parent_ids": [
+    "8403a5cb-721b-4c62-b019-2d02ecff7c82"
+  ],
+  "git_ref": "feat/add-tests (c49d630f)",
+  "created_at": "2026-04-12T22:59:28.453604Z",
+  "updated_at": "2026-04-12T23:06:55.091745Z",
+  "summary": {
+    "goal": "Introduce unit and integration tests with CI",
+    "decisions": [
+      "Add assert_cmd + predicates as dev-dependencies (tempfile already in deps)",
+      "Use pub(crate) to expose find_path, trim_path, highlight for in-module unit tests",
+      "Unit tests inline in modules; integration tests in tests/integration_tests.rs via assert_cmd",
+      "CI runs fmt check, clippy -D warnings, and cargo test --all-targets on ubuntu-latest"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "Cargo.toml",
+      "src/models.rs",
+      "src/store.rs",
+      "src/commands/context.rs",
+      "src/commands/search.rs",
+      "tests/integration_tests.rs",
+      ".github/workflows/ci.yml"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

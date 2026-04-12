@@ -214,3 +214,181 @@ impl Default for StorageConfig {
 pub struct UiConfig {
     pub editor: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn node_status_display() {
+        assert_eq!(format!("{}", NodeStatus::Active), "Active");
+        assert_eq!(format!("{}", NodeStatus::Resolved), "Resolved");
+        assert_eq!(format!("{}", NodeStatus::Abandoned), "Abandoned");
+    }
+
+    #[test]
+    fn node_status_icons() {
+        let mut node = ConversationNode::new(vec![], None, vec![]);
+        node.status = NodeStatus::Active;
+        assert_eq!(node.status_icon(), "●");
+        node.status = NodeStatus::Resolved;
+        assert_eq!(node.status_icon(), "✓");
+        node.status = NodeStatus::Abandoned;
+        assert_eq!(node.status_icon(), "✗");
+    }
+
+    #[test]
+    fn node_status_serde_roundtrip() {
+        let json = serde_json::to_string(&NodeStatus::Resolved).unwrap();
+        assert_eq!(json, "\"Resolved\"");
+        let back: NodeStatus = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, NodeStatus::Resolved);
+
+        let json2 = serde_json::to_string(&NodeStatus::Abandoned).unwrap();
+        assert_eq!(json2, "\"Abandoned\"");
+        let back2: NodeStatus = serde_json::from_str(&json2).unwrap();
+        assert_eq!(back2, NodeStatus::Abandoned);
+    }
+
+    #[test]
+    fn short_id_is_8_chars() {
+        let node = ConversationNode::new(vec![], None, vec![]);
+        let short = node.short_id();
+        assert_eq!(short.len(), 8);
+        assert!(node.id.to_string().starts_with(&short));
+    }
+
+    #[test]
+    fn graph_add_edge() {
+        let mut g = Graph::new();
+        let a = Uuid::new_v4();
+        let b = Uuid::new_v4();
+        g.add_edge(a, b);
+        assert_eq!(g.edges.len(), 1);
+        assert_eq!(g.edges[0].from, a);
+        assert_eq!(g.edges[0].to, b);
+    }
+
+    #[test]
+    fn graph_add_multiple_edges() {
+        let mut g = Graph::new();
+        let (a, b, c) = (Uuid::new_v4(), Uuid::new_v4(), Uuid::new_v4());
+        g.add_edge(a, b);
+        g.add_edge(a, c);
+        g.add_edge(b, c);
+        assert_eq!(g.edges.len(), 3);
+    }
+
+    #[test]
+    fn node_summary_default_is_empty() {
+        let s = NodeSummary::default();
+        assert!(s.goal.is_empty());
+        assert!(s.decisions.is_empty());
+        assert!(s.rejected_approaches.is_empty());
+        assert!(s.open_threads.is_empty());
+        assert!(s.key_artifacts.is_empty());
+    }
+
+    #[test]
+    fn node_summary_toml_roundtrip() {
+        let original = NodeSummary {
+            goal: "Build a parser".to_string(),
+            decisions: vec!["Use pest".to_string(), "Hand-roll lexer".to_string()],
+            rejected_approaches: vec![RejectedApproach {
+                description: "nom combinator".to_string(),
+                reason: "Too verbose".to_string(),
+            }],
+            open_threads: vec!["Error recovery strategy?".to_string()],
+            key_artifacts: vec!["src/parser.rs".to_string()],
+        };
+
+        let toml_repr = NodeSummaryToml::from(&original);
+        let roundtripped = NodeSummary::from(toml_repr);
+
+        assert_eq!(roundtripped.goal, original.goal);
+        assert_eq!(roundtripped.decisions, original.decisions);
+        assert_eq!(roundtripped.open_threads, original.open_threads);
+        assert_eq!(roundtripped.key_artifacts, original.key_artifacts);
+        assert_eq!(roundtripped.rejected_approaches.len(), 1);
+        assert_eq!(
+            roundtripped.rejected_approaches[0].description,
+            original.rejected_approaches[0].description
+        );
+        assert_eq!(
+            roundtripped.rejected_approaches[0].reason,
+            original.rejected_approaches[0].reason
+        );
+    }
+
+    #[test]
+    fn node_summary_toml_roundtrip_empty() {
+        let original = NodeSummary::default();
+        let roundtripped = NodeSummary::from(NodeSummaryToml::from(&original));
+        assert!(roundtripped.goal.is_empty());
+        assert!(roundtripped.decisions.is_empty());
+        assert!(roundtripped.rejected_approaches.is_empty());
+    }
+
+    #[test]
+    fn node_json_roundtrip() {
+        let mut node = ConversationNode::new(
+            vec![Uuid::new_v4()],
+            Some("main (abc12345)".to_string()),
+            vec!["feat".to_string()],
+        );
+        node.summary.goal = "Ship the feature".to_string();
+        node.summary.decisions.push("Use async".to_string());
+        node.summary.rejected_approaches.push(RejectedApproach {
+            description: "Threads".to_string(),
+            reason: "Complexity".to_string(),
+        });
+        node.status = NodeStatus::Resolved;
+
+        let json = serde_json::to_string(&node).unwrap();
+        let back: ConversationNode = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(back.id, node.id);
+        assert_eq!(back.parent_ids, node.parent_ids);
+        assert_eq!(back.git_ref, node.git_ref);
+        assert_eq!(back.tags, node.tags);
+        assert_eq!(back.status, NodeStatus::Resolved);
+        assert_eq!(back.summary.goal, "Ship the feature");
+        assert_eq!(back.summary.decisions, vec!["Use async"]);
+        assert_eq!(back.summary.rejected_approaches.len(), 1);
+        assert_eq!(back.summary.rejected_approaches[0].description, "Threads");
+    }
+
+    #[test]
+    fn graph_json_roundtrip() {
+        let mut g = Graph::new();
+        let root = Uuid::new_v4();
+        let child = Uuid::new_v4();
+        g.root_id = Some(root);
+        g.add_edge(root, child);
+        g.add_edge(child, Uuid::new_v4());
+
+        let json = serde_json::to_string(&g).unwrap();
+        let back: Graph = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(back.root_id, Some(root));
+        assert_eq!(back.edges.len(), 2);
+        assert_eq!(back.edges[0].from, root);
+        assert_eq!(back.edges[0].to, child);
+    }
+
+    #[test]
+    fn state_json_roundtrip() {
+        let id = Uuid::new_v4();
+        let s = State {
+            active_id: Some(id),
+        };
+        let json = serde_json::to_string(&s).unwrap();
+        let back: State = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.active_id, Some(id));
+
+        let empty = State::new();
+        let json2 = serde_json::to_string(&empty).unwrap();
+        let back2: State = serde_json::from_str(&json2).unwrap();
+        assert!(back2.active_id.is_none());
+    }
+}
