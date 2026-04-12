@@ -50,7 +50,7 @@ memex graph view
 | `memex node create` | Create a new conversation node |
 | `memex node edit [id]` | Edit a node's summary in `$EDITOR` |
 | `memex node show [id]` | Display a node's full summary |
-| `memex node list` | List all nodes |
+| `memex node list` | List all nodes with parent IDs, status, git ref, and goal |
 | `memex node resolve [id]` | Mark a node as resolved |
 | `memex node abandon [id]` | Mark a node as abandoned |
 | `memex node reopen [id]` | Reopen a resolved or abandoned node |
