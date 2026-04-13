@@ -1,0 +1,49 @@
+name: Verify memex node
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  memex-node-check:
+    name: Verify memex node created
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify memex node and graph.json
+        run: |
+          BASE=origin/${{ github.base_ref }}
+
+          # 1. New node files
+          NEW_NODES=$(git diff --name-only --diff-filter=A "$BASE"...HEAD -- '.memex/nodes/*.json')
+          if [ -z "$NEW_NODES" ]; then
+            echo "::error::No new memex node found in .memex/nodes/. Run: memex node create --parent <id> --goal \"<goal>\""
+            exit 1
+          fi
+          echo "New node(s) found: $NEW_NODES"
+
+          # 2. graph.json updated
+          GRAPH_CHANGED=$(git diff --name-only "$BASE"...HEAD -- '.memex/graph.json')
+          if [ -z "$GRAPH_CHANGED" ]; then
+            echo "::error::.memex/graph.json was not updated. Ensure memex node create was run."
+            exit 1
+          fi
+          echo "graph.json was updated."
+
+          # 3. Each new node is referenced in graph.json
+          FAILED=0
+          for NODE_PATH in $NEW_NODES; do
+            UUID=$(basename "$NODE_PATH" .json)
+            if jq -e --arg id "$UUID" \
+              '.root_id == $id or any(.edges[]; .from == $id or .to == $id)' \
+              .memex/graph.json > /dev/null 2>&1; then
+              echo "Node $UUID is referenced in graph.json."
+            else
+              echo "::error::Node $UUID is not referenced in graph.json."
+              FAILED=1
+            fi
+          done
+          exit $FAILED
