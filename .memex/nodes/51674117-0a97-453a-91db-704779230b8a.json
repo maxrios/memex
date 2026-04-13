@@ -1,0 +1,23 @@
+{
+  "id": "51674117-0a97-453a-91db-704779230b8a",
+  "parent_ids": [
+    "0063801a-b3b6-475d-928a-74305810efe2"
+  ],
+  "git_ref": "maxrios-patch-1 (cd508aa5)",
+  "created_at": "2026-04-13T15:55:26.254734Z",
+  "updated_at": "2026-04-13T15:55:31.319031Z",
+  "summary": {
+    "goal": "Add GPL3 LICENSE to keep memex open source",
+    "decisions": [
+      "Selected GPL3 because it ensures memex remains open source — any derivative work must also be distributed under GPL3, preventing proprietary forks"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "LICENSE"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
