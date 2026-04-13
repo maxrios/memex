@@ -1,0 +1,25 @@
+{
+  "id": "af5774e3-d353-477c-93ea-8f465e62028e",
+  "parent_ids": [
+    "6b5dfbf7-0a77-47ab-bfa1-be67cf9f8eb2"
+  ],
+  "git_ref": "feat/memex-node-ci-check (b810aa9a)",
+  "created_at": "2026-04-13T03:39:10.395036Z",
+  "updated_at": "2026-04-13T03:39:35.221049Z",
+  "summary": {
+    "goal": "Add GitHub Action to enforce memex node creation on PRs",
+    "decisions": [
+      "separate workflow file (memex-check.yml) instead of adding a step to ci.yml — keeps Rust CI and workflow enforcement concerns independent",
+      "three checks in a single run step: (1) new node file added, (2) graph.json modified, (3) each node UUID present in graph.json as root_id or edge — covers both rooted and parented nodes",
+      "fetch-depth: 0 on checkout so origin/${{ github.base_ref }} is available for three-dot diff against HEAD"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      ".github/workflows/memex-check.yml"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
