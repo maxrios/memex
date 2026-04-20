@@ -1,0 +1,24 @@
+{
+  "id": "bbb06973-3c59-4a14-86d1-37dc2b971225",
+  "parent_ids": [
+    "1d566d00-399a-4447-aa27-1210f5acdd45"
+  ],
+  "git_ref": "docs/agents-md-split (fd9f1dd8)",
+  "created_at": "2026-04-20T06:48:21.395101Z",
+  "updated_at": "2026-04-20T06:48:39.819554Z",
+  "summary": {
+    "goal": "Move CLAUDE.md contents to AGENTS.md and route CLAUDE.md to it via @AGENTS.md",
+    "decisions": [
+      "Put all agent instructions in AGENTS.md so non-Claude agents (Gemini, Codex, etc.) pick up the same guidance via their AGENTS.md convention"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "AGENTS.md",
+      "CLAUDE.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
