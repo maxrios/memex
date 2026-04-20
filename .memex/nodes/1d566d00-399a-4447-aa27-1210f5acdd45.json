@@ -1,0 +1,31 @@
+{
+  "id": "1d566d00-399a-4447-aa27-1210f5acdd45",
+  "parent_ids": [
+    "269bfac9-e21c-42a3-8ed0-6bbc5ead6a17"
+  ],
+  "git_ref": "docs/claude-md-structure-alignment (b91fa95f)",
+  "created_at": "2026-04-20T05:44:30.435866Z",
+  "updated_at": "2026-04-20T05:45:44.103061Z",
+  "summary": {
+    "goal": "Restructure CLAUDE.md to mirror startrail's layout — add Stack/Scripts tables, promote Key design decisions to a top-level section, and enrich workflow steps 5/7/8 with reflection prompts for rejected/open-thread, explicit state.json rationale, and a PR description template",
+    "decisions": [
+      "Adopted startrail's CLAUDE.md structure (Stack / Key design decisions / Structure / Where tracked / Scripts / Workflow / Doc hygiene) because the two projects should feel like siblings to an agent; a consistent shape reduces the cognitive load when switching between them",
+      "Kept memex-specific content under each heading (Rust stack, cargo scripts, GraphStore I/O boundary, state.json vs graph.json rationale) rather than copying startrail's Next.js specifics — the structure transfers, the content does not",
+      "Enriched workflow step 5 with the reflection prompts startrail uses for --rejected and --open-thread; under-used fields in this repo, so the prompt itself has leverage",
+      "Added a PR description template (Summary + Test plan) to step 8 to match recent PR style and remove template-drafting overhead for future agents"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Port startrail's CLAUDE.md verbatim, minus the Next.js bits",
+        "reason": "Would have introduced concepts that do not apply here (Vercel hosting, NextAuth, Drizzle). Structure-only port keeps every line load-bearing for memex."
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      "CLAUDE.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
