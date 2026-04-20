@@ -167,7 +167,7 @@ impl GraphStore {
             }
         }
         // Sort by created_at for consistent output
-        nodes.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+        nodes.sort_by_key(|n| n.created_at);
         Ok(nodes)
     }
 
