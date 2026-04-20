@@ -1,0 +1,42 @@
+{
+  "id": "5a17fac4-c62e-4db5-bf10-183486bc4b31",
+  "parent_ids": [
+    "269bfac9-e21c-42a3-8ed0-6bbc5ead6a17"
+  ],
+  "git_ref": "chore/audit-graph-parent-relationships (34948181)",
+  "created_at": "2026-04-20T05:06:26.956033Z",
+  "updated_at": "2026-04-20T05:08:35.759672Z",
+  "summary": {
+    "goal": "Audit and correct memex graph parent misassignments",
+    "decisions": [
+      "Identified three misassignments by cross-referencing graph.json edges against node goals, git log, and the dependency-first parent rule in CLAUDE.md",
+      "18f50221 (--summary param) reparented from 173a43aa (docs) to 925f8e38 (rename): code feature should not depend on an unrelated documentation node",
+      "97071768 (--goal guidance) reparented from 9f869ab8 (--depth N code) to 173a43aa (parent guidance docs): workflow docs extend prior workflow docs, not an unrelated code feature",
+      "51674117 (LICENSE) reparented from root 0063801a to af5774e3 (CI check): LICENSE was the last node created but floated off the project root — should attach to the project tip at the time of creation"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Reparent LICENSE to 269bfac9 (parent node examples) as the most recent resolved node",
+        "reason": "Chronological recency is not the right criterion — LICENSE has no dependency on parent-selection docs either; af5774e3 (CI check) was the actual project tip when LICENSE was added"
+      },
+      {
+        "description": "Leave the linear chain intact (4c5d17 → f5d7a9 → 9f869a → 970717 → d85b81) without correction",
+        "reason": "970717 (--goal guidance) is a docs node chained after a code feature it has no relationship to; the chain obscures that the docs work extends 173a43aa"
+      },
+      {
+        "description": "Reparent d85b81 (workflow enforcement) away from 970717",
+        "reason": "d85b81 and 970717 were committed on the same git branch and d85b81 was resolved immediately after; the chaining is coherent as both are workflow/settings work"
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      ".memex/graph.json",
+      ".memex/nodes/18f50221-c31f-4c7f-8d53-5ea9c91e01ff.json",
+      ".memex/nodes/97071768-0b92-46ae-9558-877b828b9eb9.json",
+      ".memex/nodes/51674117-0a97-453a-91db-704779230b8a.json"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
