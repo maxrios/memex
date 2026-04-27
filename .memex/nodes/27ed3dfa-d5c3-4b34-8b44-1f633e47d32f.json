@@ -1,0 +1,24 @@
+{
+  "id": "27ed3dfa-d5c3-4b34-8b44-1f633e47d32f",
+  "parent_ids": [
+    "af5774e3-d353-477c-93ea-8f465e62028e"
+  ],
+  "git_ref": "chore/msrv (f72f99ae)",
+  "created_at": "2026-04-27T21:27:44.723708Z",
+  "updated_at": "2026-04-27T21:28:10.956569Z",
+  "summary": {
+    "goal": "Declare MSRV (rust-version = \"1.74\") in Cargo.toml; confirm --version is already wired via clap",
+    "decisions": [
+      "rust-version = \"1.74\" chosen because clap 4 requires 1.74 as its minimum — the effective floor for this dependency set",
+      "the bare version attribute on #[command] in main.rs was already wiring --version from CARGO_PKG_VERSION; no source change required"
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "Cargo.toml"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
