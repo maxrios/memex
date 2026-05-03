@@ -100,6 +100,18 @@ List all nodes with IDs, parent IDs, status, git ref, and goal.
 
 Transition a node's status between Active, Resolved, and Abandoned.
 
+`resolve` and `abandon` prompt for confirmation when run in an interactive terminal:
+
+```
+Resolve node abc12345 "Add user authentication"? [y/N]
+```
+
+| Flag | Description |
+|---|---|
+| `--force` / `-y` | Skip the confirmation prompt (for scripts and CI) |
+
+Non-interactive contexts (pipes, CI) skip the prompt automatically.
+
 ### `memex context [id]`
 
 Generate a context payload. Walks the ancestor chain and formats it for pasting into a new conversation.
