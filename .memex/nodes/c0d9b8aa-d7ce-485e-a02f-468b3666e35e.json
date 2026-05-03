@@ -1,0 +1,31 @@
+{
+  "id": "c0d9b8aa-d7ce-485e-a02f-468b3666e35e",
+  "parent_ids": [
+    "f5184c9b-f9c4-41ca-ab86-b90d23bc4efe"
+  ],
+  "git_ref": "feat/confirm-destructive-ops (7356024f)",
+  "created_at": "2026-05-03T16:06:02.021490Z",
+  "updated_at": "2026-05-03T16:12:40.078198Z",
+  "summary": {
+    "goal": "Add confirmation prompt to abandon/resolve to prevent accidental destructive status changes (closes #26)",
+    "decisions": [
+      "Added --force/-y flag to resolve and abandon; reopen always skips prompt since it is non-destructive",
+      "Used std::io::IsTerminal on stdin to gate the prompt; non-TTY contexts (CI, pipes) skip prompt automatically without needing --force"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Adding confirmation to reopen as well",
+        "reason": "Reopen is not destructive — it recovers state — so prompting would add friction with no safety benefit"
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/main.rs",
+      "src/commands/node.rs",
+      "tests/integration_tests.rs"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
