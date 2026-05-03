@@ -1,0 +1,31 @@
+{
+  "id": "6aa10762-18c3-41a3-96f3-7c68387fa04f",
+  "parent_ids": [
+    "6b5dfbf7-0a77-47ab-bfa1-be67cf9f8eb2"
+  ],
+  "git_ref": "fix/search-highlight-unicode (80e6aaeb)",
+  "created_at": "2026-05-03T18:50:05.721323Z",
+  "updated_at": "2026-05-03T18:51:43.968651Z",
+  "summary": {
+    "goal": "Fix UTF-8 panic in search highlight() by replacing byte-index slicing with char-level iteration (closes #23)",
+    "decisions": [
+      "Replaced byte-index slicing with char-vec iteration: collect text and lower as Vec<char>, search by char-slice equality, push chars directly — no byte offsets from lower ever used to index text",
+      "When char count diverges (rare: folding expansion like İ→i+combining-dot), return text unmodified — no highlight but no panic, acceptable for the edge case"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Full char-tracking with lower_src map to handle mid-expansion queries",
+        "reason": "Correct for all cases but substantially more complex; the simpler char-vec approach handles the described panic and all realistic inputs"
+      }
+    ],
+    "open_threads": [
+      "highlight() now allocates two Vec<char>; if perf ever matters for large node sets, a char-indices iterator approach avoids the allocations"
+    ],
+    "key_artifacts": [
+      "src/commands/search.rs"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
