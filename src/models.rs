@@ -78,16 +78,9 @@ impl ConversationNode {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Edge {
-    pub from: Uuid,
-    pub to: Uuid,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Graph {
     pub version: String,
     pub root_id: Option<Uuid>,
-    pub edges: Vec<Edge>,
 }
 
 impl Graph {
@@ -95,12 +88,7 @@ impl Graph {
         Graph {
             version: "1".to_string(),
             root_id: None,
-            edges: Vec::new(),
         }
-    }
-
-    pub fn add_edge(&mut self, from: Uuid, to: Uuid) {
-        self.edges.push(Edge { from, to });
     }
 }
 
@@ -259,27 +247,6 @@ mod tests {
     }
 
     #[test]
-    fn graph_add_edge() {
-        let mut g = Graph::new();
-        let a = Uuid::new_v4();
-        let b = Uuid::new_v4();
-        g.add_edge(a, b);
-        assert_eq!(g.edges.len(), 1);
-        assert_eq!(g.edges[0].from, a);
-        assert_eq!(g.edges[0].to, b);
-    }
-
-    #[test]
-    fn graph_add_multiple_edges() {
-        let mut g = Graph::new();
-        let (a, b, c) = (Uuid::new_v4(), Uuid::new_v4(), Uuid::new_v4());
-        g.add_edge(a, b);
-        g.add_edge(a, c);
-        g.add_edge(b, c);
-        assert_eq!(g.edges.len(), 3);
-    }
-
-    #[test]
     fn node_summary_default_is_empty() {
         let s = NodeSummary::default();
         assert!(s.goal.is_empty());
@@ -362,18 +329,24 @@ mod tests {
     fn graph_json_roundtrip() {
         let mut g = Graph::new();
         let root = Uuid::new_v4();
-        let child = Uuid::new_v4();
         g.root_id = Some(root);
-        g.add_edge(root, child);
-        g.add_edge(child, Uuid::new_v4());
 
         let json = serde_json::to_string(&g).unwrap();
         let back: Graph = serde_json::from_str(&json).unwrap();
 
         assert_eq!(back.root_id, Some(root));
-        assert_eq!(back.edges.len(), 2);
-        assert_eq!(back.edges[0].from, root);
-        assert_eq!(back.edges[0].to, child);
+    }
+
+    #[test]
+    fn graph_json_roundtrip_ignores_legacy_edges() {
+        let root = Uuid::new_v4();
+        let child = Uuid::new_v4();
+        // Simulate a graph.json written by an older version that included edges
+        let legacy = format!(
+            r#"{{"version":"1","root_id":"{root}","edges":[{{"from":"{root}","to":"{child}"}}]}}"#
+        );
+        let g: Graph = serde_json::from_str(&legacy).unwrap();
+        assert_eq!(g.root_id, Some(root));
     }
 
     #[test]

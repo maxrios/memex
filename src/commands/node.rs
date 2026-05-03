@@ -15,7 +15,6 @@ pub fn create(
     goal: Option<&str>,
 ) -> Result<()> {
     let store = GraphStore::open_from_cwd()?;
-    let mut graph = store.load_graph()?;
 
     // Resolve parent ID
     let parent_id = if let Some(p) = parent {
@@ -50,18 +49,12 @@ pub fn create(
         editor::edit_node_summary(None)?
     };
 
-    let mut node = ConversationNode::new(parent_ids.clone(), resolved_git_ref, tags.to_vec());
+    let mut node = ConversationNode::new(parent_ids, resolved_git_ref, tags.to_vec());
     node.summary = summary;
 
     let node_id = node.id;
 
-    // Add edges to graph
-    for pid in &parent_ids {
-        graph.add_edge(*pid, node_id);
-    }
-
     store.save_node(&node)?;
-    store.save_graph(&graph)?;
     store.set_active_id(node_id)?;
 
     println!("Created node: {}", node_id);

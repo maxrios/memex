@@ -292,18 +292,12 @@ mod tests {
         let (_tmp, store) = make_store();
         let mut g = Graph::new();
         let root = Uuid::new_v4();
-        let child = Uuid::new_v4();
         g.root_id = Some(root);
-        g.add_edge(root, child);
-        g.add_edge(child, Uuid::new_v4());
 
         store.save_graph(&g).unwrap();
         let loaded = store.load_graph().unwrap();
 
         assert_eq!(loaded.root_id, Some(root));
-        assert_eq!(loaded.edges.len(), 2);
-        assert_eq!(loaded.edges[0].from, root);
-        assert_eq!(loaded.edges[0].to, child);
     }
 
     #[test]
@@ -312,7 +306,6 @@ mod tests {
         // graph.json was not written during initialize()
         let g = store.load_graph().unwrap();
         assert!(g.root_id.is_none());
-        assert!(g.edges.is_empty());
     }
 
     // --- Node I/O ---

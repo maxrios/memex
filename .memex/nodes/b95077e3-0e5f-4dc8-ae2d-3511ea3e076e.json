@@ -1,0 +1,31 @@
+{
+  "id": "b95077e3-0e5f-4dc8-ae2d-3511ea3e076e",
+  "parent_ids": [
+    "f5184c9b-f9c4-41ca-ab86-b90d23bc4efe"
+  ],
+  "git_ref": "fix/remove-graph-edges-dual-source (d5a8c4ab)",
+  "created_at": "2026-05-03T16:31:31.334449Z",
+  "updated_at": "2026-05-03T16:36:29.361935Z",
+  "summary": {
+    "goal": "Remove graph.edges dual representation: derive children from node.parent_ids (closes #28)",
+    "decisions": [
+      "Drop graph.edges entirely; derive children map by inverting node.parent_ids at load time in graph.rs view command"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Add GraphStore::check_integrity() and call it on load",
+        "reason": "Two representations are still maintained; integrity checks only catch divergence after the fact. Dropping edges entirely eliminates the dual source of truth rather than papering over it."
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/models.rs",
+      "src/commands/graph.rs",
+      "src/commands/node.rs",
+      "src/store.rs"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
