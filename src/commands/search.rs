@@ -98,18 +98,40 @@ pub fn run(query: &str) -> Result<()> {
 pub(crate) fn highlight(text: &str, query: &str) -> String {
     let lower = text.to_lowercase();
     let query_lower = query.to_lowercase();
-    let mut result = String::new();
-    let mut pos = 0;
+    let query_lower_chars: Vec<char> = query_lower.chars().collect();
+    let ql = query_lower_chars.len();
 
-    while let Some(idx) = lower[pos..].find(&query_lower) {
-        let abs_idx = pos + idx;
-        result.push_str(&text[pos..abs_idx]);
-        result.push_str(">>");
-        result.push_str(&text[abs_idx..abs_idx + query.len()]);
-        result.push_str("<<");
-        pos = abs_idx + query.len();
+    if ql == 0 {
+        return text.to_string();
     }
-    result.push_str(&text[pos..]);
+
+    // Work in char space to avoid byte-boundary panics from Unicode case folding:
+    // to_lowercase() can change byte length (e.g. ẞ [3 bytes] → ß [2 bytes]),
+    // so byte offsets from `lower` are not valid slice indices into `text`.
+    let text_chars: Vec<char> = text.chars().collect();
+    let lower_chars: Vec<char> = lower.chars().collect();
+    let n = text_chars.len();
+
+    // Rare case: folding expanded char count (e.g. İ → i + combining dot).
+    // Return unmodified — no highlight, but no panic either.
+    if n != lower_chars.len() {
+        return text.to_string();
+    }
+
+    let mut result = String::with_capacity(text.len());
+    let mut i = 0;
+    while i < n {
+        if i + ql <= n && lower_chars[i..i + ql] == query_lower_chars[..] {
+            result.push_str(">>");
+            result.extend(text_chars[i..i + ql].iter());
+            result.push_str("<<");
+            i += ql;
+        } else {
+            result.push(text_chars[i]);
+            i += 1;
+        }
+    }
+
     result
 }
 
@@ -161,5 +183,19 @@ mod tests {
     fn highlight_multibyte_utf8_smoke() {
         // "café" has a 2-byte é; the match is after it — verify no byte-boundary panic
         assert_eq!(highlight("café latte", "latte"), "café >>latte<<");
+    }
+
+    #[test]
+    fn highlight_unicode_folding_byte_shift_no_panic() {
+        // ẞ (U+1E9E, 3 bytes) folds to ß (U+00DF, 2 bytes) — a match queried as
+        // "ß" must not panic when indexing back into the original text.
+        assert_eq!(highlight("STRAẞE", "ß"), "STRA>>ẞ<<E");
+    }
+
+    #[test]
+    fn highlight_unicode_match_after_folded_char() {
+        // ẞ (3 bytes) → ß (2 bytes) shifts all byte offsets after it. A match
+        // that starts after ẞ used to panic with the byte-index approach.
+        assert_eq!(highlight("ẞtraße", "tra"), "ẞ>>tra<<ße");
     }
 }
