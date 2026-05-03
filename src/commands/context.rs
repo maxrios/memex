@@ -36,8 +36,16 @@ pub fn run(id: Option<&str>, format: OutputFormat, depth: usize) -> Result<()> {
         .root_id
         .ok_or_else(|| anyhow::anyhow!("Graph has no root node"))?;
 
-    let path = find_path(root_id, node_id, &node_map)
-        .ok_or_else(|| anyhow::anyhow!("Could not find path from root to node {}", node_id))?;
+    let path = match find_path(root_id, node_id, &node_map) {
+        Some(p) => p,
+        None => {
+            eprintln!(
+                "warning: node {} is not reachable from the graph root — ancestor context will be incomplete",
+                &node_id.to_string()[..8]
+            );
+            vec![node_id]
+        }
+    };
 
     let path = trim_path(path, depth);
 
@@ -102,8 +110,7 @@ pub(crate) fn find_path(
         }
     }
 
-    // If not found via parent traversal, just return [target] as fallback
-    Some(vec![target])
+    None
 }
 
 fn generate_markdown(
@@ -501,15 +508,14 @@ mod tests {
     }
 
     #[test]
-    fn find_path_unreachable_target_returns_singleton() {
+    fn find_path_unreachable_target_returns_none() {
         let start = Uuid::new_v4();
         let target = Uuid::new_v4();
         let n_start = make_node(start, vec![]);
         let n_target = make_node(target, vec![]); // no relationship to start
         let nodes = vec![n_start, n_target];
         let map = node_map(&nodes);
-        // Contract: fallback returns Some([target]) when target is not reachable from start
-        assert_eq!(find_path(start, target, &map), Some(vec![target]));
+        assert_eq!(find_path(start, target, &map), None);
     }
 
     // --- trim_path ---
