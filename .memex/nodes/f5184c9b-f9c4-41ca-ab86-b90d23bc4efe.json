@@ -1,0 +1,28 @@
+{
+  "id": "f5184c9b-f9c4-41ca-ab86-b90d23bc4efe",
+  "parent_ids": [
+    "9f869ab8-4aa9-499c-b316-a3c563407906"
+  ],
+  "git_ref": "fix/context-orphaned-node-warning (3d286bd4)",
+  "created_at": "2026-05-03T15:16:34.820372Z",
+  "updated_at": "2026-05-03T15:18:07.918541Z",
+  "summary": {
+    "goal": "Fix find_path to return None for unreachable nodes and emit a stderr warning instead of silently returning a singleton path",
+    "decisions": [
+      "find_path now returns None for unreachable nodes; run() emits a stderr warning and falls back to vec![target] so context output still works for orphaned nodes"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Return an error from run() when node is unreachable",
+        "reason": "Would break UX for users with corrupted graphs — a warning with degraded output is preferable to a hard failure"
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/commands/context.rs"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
