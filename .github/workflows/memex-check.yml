@@ -8,6 +8,7 @@ jobs:
   memex-node-check:
     name: Verify memex node created
     runs-on: ubuntu-latest
+    if: "!contains(github.event.pull_request.title, '[skip memex]')"
     steps:
       - uses: actions/checkout@v4
         with:
