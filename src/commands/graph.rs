@@ -19,10 +19,12 @@ pub fn view() -> Result<()> {
 
     let node_map: HashMap<Uuid, &ConversationNode> = nodes.iter().map(|n| (n.id, n)).collect();
 
-    // Build children map from graph edges
+    // Build children map by inverting each node's parent_ids
     let mut children: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
-    for edge in &graph.edges {
-        children.entry(edge.from).or_default().push(edge.to);
+    for node in &nodes {
+        for &parent_id in &node.parent_ids {
+            children.entry(parent_id).or_default().push(node.id);
+        }
     }
 
     // Find roots: nodes with no parents (or the designated root_id first)
