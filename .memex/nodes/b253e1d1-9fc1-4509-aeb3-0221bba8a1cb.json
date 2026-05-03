@@ -1,0 +1,27 @@
+{
+  "id": "b253e1d1-9fc1-4509-aeb3-0221bba8a1cb",
+  "parent_ids": [
+    "074d970f-d6e3-4c42-aae5-7c73c3adcd80"
+  ],
+  "git_ref": "infra/ci-matrix-os (3d286bd4)",
+  "created_at": "2026-05-03T15:03:59.083521Z",
+  "updated_at": "2026-05-03T15:08:09.832675Z",
+  "summary": {
+    "goal": "Add OS matrix to CI for macOS and Windows test coverage (closes #30)",
+    "decisions": [
+      "Run cargo fmt --check and cargo clippy only on ubuntu-latest; these are platform-independent linters so running them 3x adds noise with no signal",
+      "Keep EDITOR: true for all OSes; Git for Windows provides true.exe on PATH for Windows runners, and no integration test actually invokes the editor path"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Run fmt/clippy on all three OSes",
+        "reason": "Redundant — formatting and linting are platform-independent; triples CI time with no benefit"
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": []
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
