@@ -378,6 +378,68 @@ fn node_reopen_already_active_errors() {
         .stderr(predicate::str::contains("already active").or(predicate::str::contains("already")));
 }
 
+// ─── Node resolve/abandon --force ────────────────────────────────────────────
+
+#[test]
+fn node_resolve_with_force_flag() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Task to force-resolve");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "resolve", "--force"])
+        .assert()
+        .success();
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "show"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Resolved"));
+}
+
+#[test]
+fn node_resolve_with_short_force_flag() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Task to force-resolve short");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "resolve", "-y"])
+        .assert()
+        .success();
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "show"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Resolved"));
+}
+
+#[test]
+fn node_abandon_with_force_flag() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Task to force-abandon");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "abandon", "--force"])
+        .assert()
+        .success();
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "show"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Abandoned"));
+}
+
 // ─── Node show / list ────────────────────────────────────────────────────────
 
 #[test]

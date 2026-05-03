@@ -123,12 +123,20 @@ enum NodeCommands {
     Resolve {
         /// Node ID (defaults to active node)
         id: Option<String>,
+
+        /// Skip confirmation prompt
+        #[arg(long, short = 'y')]
+        force: bool,
     },
 
     /// Mark a node as abandoned
     Abandon {
         /// Node ID (defaults to active node)
         id: Option<String>,
+
+        /// Skip confirmation prompt
+        #[arg(long, short = 'y')]
+        force: bool,
     },
 
     /// Reopen a resolved or abandoned node (set back to Active)
@@ -187,14 +195,14 @@ fn run(cli: Cli) -> Result<()> {
             ),
             NodeCommands::Show { id } => commands::node::show(id.as_deref()),
             NodeCommands::List => commands::node::list(),
-            NodeCommands::Resolve { id } => {
-                commands::node::set_status(id.as_deref(), NodeStatus::Resolved)
+            NodeCommands::Resolve { id, force } => {
+                commands::node::set_status(id.as_deref(), NodeStatus::Resolved, force)
             }
-            NodeCommands::Abandon { id } => {
-                commands::node::set_status(id.as_deref(), NodeStatus::Abandoned)
+            NodeCommands::Abandon { id, force } => {
+                commands::node::set_status(id.as_deref(), NodeStatus::Abandoned, force)
             }
             NodeCommands::Reopen { id } => {
-                commands::node::set_status(id.as_deref(), NodeStatus::Active)
+                commands::node::set_status(id.as_deref(), NodeStatus::Active, true)
             }
         },
 

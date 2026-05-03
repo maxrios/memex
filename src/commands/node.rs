@@ -1,3 +1,5 @@
+use std::io::{self, IsTerminal, Write};
+
 use anyhow::{bail, Context, Result};
 use chrono::Utc;
 
@@ -192,15 +194,15 @@ pub fn list() -> Result<()> {
     Ok(())
 }
 
-pub fn set_status(id: Option<&str>, status: NodeStatus) -> Result<()> {
+pub fn set_status(id: Option<&str>, status: NodeStatus, force: bool) -> Result<()> {
     let store = GraphStore::open_from_cwd()?;
     let node_id = store.resolve_node_id(id)?;
     let mut node = store.load_node(node_id)?;
 
     let verb = match &status {
-        NodeStatus::Resolved => "resolved",
-        NodeStatus::Abandoned => "abandoned",
-        NodeStatus::Active => "reopened",
+        NodeStatus::Resolved => "resolve",
+        NodeStatus::Abandoned => "abandon",
+        NodeStatus::Active => "reopen",
     };
 
     // Validate transitions
@@ -217,12 +219,48 @@ pub fn set_status(id: Option<&str>, status: NodeStatus) -> Result<()> {
         _ => {}
     }
 
+    if !force && io::stdin().is_terminal() {
+        let goal_preview: String = node.summary.goal.chars().take(60).collect();
+        let goal_preview = if node.summary.goal.len() > 60 {
+            format!("{}…", goal_preview)
+        } else {
+            goal_preview
+        };
+        eprint!(
+            "{} node {} \"{}\"? [y/N] ",
+            capitalize(verb),
+            node.short_id(),
+            goal_preview
+        );
+        io::stderr().flush()?;
+
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+        if !matches!(input.trim().to_lowercase().as_str(), "y" | "yes") {
+            bail!("Aborted.");
+        }
+    }
+
+    let past_verb = match &status {
+        NodeStatus::Resolved => "resolved",
+        NodeStatus::Abandoned => "abandoned",
+        NodeStatus::Active => "reopened",
+    };
+
     node.status = status;
     node.updated_at = Utc::now();
     store.save_node(&node)?;
 
-    println!("Node {} {}.", node.short_id(), verb);
+    println!("Node {} {}.", node.short_id(), past_verb);
     Ok(())
+}
+
+fn capitalize(s: &str) -> String {
+    let mut c = s.chars();
+    match c.next() {
+        None => String::new(),
+        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+    }
 }
 
 fn print_node_detail(node: &ConversationNode, is_active: bool) {
