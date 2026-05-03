@@ -1,0 +1,26 @@
+{
+  "id": "50769c1a-f2a8-4096-9b12-74219269bc06",
+  "parent_ids": [
+    "af5774e3-d353-477c-93ea-8f465e62028e"
+  ],
+  "git_ref": "chore/memex-check-drop-synchronize (fc41ed15)",
+  "created_at": "2026-05-03T16:52:32.970916Z",
+  "updated_at": "2026-05-03T16:53:57.048318Z",
+  "summary": {
+    "goal": "Remove synchronize trigger from memex-check.yml so the CI job runs against the full PR once rather than on every commit push",
+    "decisions": [
+      "removed synchronize from trigger types; the three-dot diff already checks the full PR so re-running on every push was noise"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Keep synchronize but skip if node already exists",
+        "reason": "Would require stateful artifact caching across runs; overkill for what is a PR-level structural check"
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": []
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

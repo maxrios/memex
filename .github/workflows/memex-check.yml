@@ -3,7 +3,7 @@ name: Verify memex node
 on:
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, reopened, edited]
 
 jobs:
   memex-node-check:
