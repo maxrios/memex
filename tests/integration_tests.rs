@@ -54,6 +54,29 @@ fn init_creates_memex_directory() {
     assert!(tmp.path().join(".memex").is_dir());
     assert!(tmp.path().join(".memex/nodes").is_dir());
     assert!(tmp.path().join(".memex/config.toml").exists());
+    assert!(tmp.path().join(".memex/.gitignore").exists());
+    let gitignore = fs::read_to_string(tmp.path().join(".memex/.gitignore")).unwrap();
+    assert!(gitignore.contains("state.json"));
+}
+
+#[test]
+fn init_does_not_overwrite_existing_gitignore() {
+    let tmp = TempDir::new().unwrap();
+    // Pre-create the .memex dir and a custom .gitignore before init
+    let memex_dir = tmp.path().join(".memex");
+    fs::create_dir_all(&memex_dir).unwrap();
+    fs::write(memex_dir.join(".gitignore"), "custom-content\n").unwrap();
+
+    // init should skip writing .gitignore because it already exists
+    memex()
+        .current_dir(tmp.path())
+        .arg("init")
+        .write_stdin("My project\n")
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(memex_dir.join(".gitignore")).unwrap();
+    assert_eq!(content, "custom-content\n");
 }
 
 #[test]
