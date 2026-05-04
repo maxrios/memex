@@ -1,0 +1,29 @@
+{
+  "id": "d91ebae3-f718-4843-8daf-c83393f6af31",
+  "parent_ids": [
+    "6aa10762-18c3-41a3-96f3-7c68387fa04f"
+  ],
+  "git_ref": "fix/init-gitignore (3fffceb5)",
+  "created_at": "2026-05-04T01:05:33.492035Z",
+  "updated_at": "2026-05-04T01:10:47.945403Z",
+  "summary": {
+    "goal": "Write .memex/.gitignore in store::initialize() so memex init protects state.json from accidental commits (closes #24)",
+    "decisions": [
+      "write .memex/.gitignore with 'state.json' in store::initialize() using a plain exists() guard so a user-customized file is preserved"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Use OpenOptions::create_new",
+        "reason": "create_new returns ErrorKind::AlreadyExists which is fine, but the plain exists() check is simpler and equally correct since we only need to skip the write"
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/store.rs",
+      "tests/integration_tests.rs"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

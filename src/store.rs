@@ -79,6 +79,13 @@ impl GraphStore {
             fs::write(self.config_path(), toml_str).context("Failed to write config.toml")?;
         }
 
+        // Write .gitignore to keep state.json out of git; never overwrite a user-customized file
+        let gitignore_path = dir.join(".gitignore");
+        if !gitignore_path.exists() {
+            fs::write(&gitignore_path, "state.json\n")
+                .context("Failed to write .memex/.gitignore")?;
+        }
+
         Ok(())
     }
 
@@ -274,6 +281,8 @@ mod tests {
         assert!(store.config_path().exists());
         let config_content = fs::read_to_string(store.config_path()).unwrap();
         assert!(!config_content.is_empty());
+        let gitignore = fs::read_to_string(store.memex_dir().join(".gitignore")).unwrap();
+        assert!(gitignore.contains("state.json"));
     }
 
     #[test]
