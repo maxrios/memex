@@ -1,0 +1,44 @@
+{
+  "id": "15b2ec54-8601-48e5-8e4c-7cc8cbb6a7db",
+  "parent_ids": [
+    "bbb06973-3c59-4a14-86d1-37dc2b971225"
+  ],
+  "git_ref": "chore/token-ablation (44219c2c)",
+  "created_at": "2026-05-04T01:44:22.329213Z",
+  "updated_at": "2026-05-04T01:52:25.678575Z",
+  "summary": {
+    "goal": "Measure context-payload size for representative nodes: memex context vs. git log + PR bodies — supporting evidence for case studies (refs #38)",
+    "decisions": [
+      "Picked three nodes spanning strata: 5a17fac4 (decision-heavy, 4 decisions / 3 rejected), b95077e3 (refactor with motivation, 1 decision / 1 rejected), 27ed3dfa (shallow MSRV, 2 decisions / 0 rejected). Selected by ranking nodes by rejected_approaches count and inspecting the top candidates rather than picking by recency or familiarity.",
+      "Byte and char counts over a real tokenizer (tiktoken/anthropic-tokenizer): no Python/API dep, deterministic, the ratio between sources is what matters for an order-of-magnitude comparison; chars/4 is the standard rough approximation.",
+      "Reported the shallow-node case (27ed3dfa) where memex is ~102% of the baseline. The negative control is more credible than the wins it sits next to.",
+      "Three context sources (memex / git log on key_artifacts / gh pr body) instead of #38's three arms (memex / git-history / transcript-dump). Drops transcript-dump (Claude Code does not persist sessions; reconstructing one authors a strawman) and replaces 'git-history' with the two concrete commands a real user actually runs."
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Run issue #38 as written: 12-15 tasks, 3 arms, N=5 trials, 2 models, LLM judge, Wilcoxon signed-rank",
+        "reason": "Structural selection bias (corpus drawn from memex-using repos), tautological rejected-approach scoring (only arm C has them as input), baseline contamination (commit messages were authored by memex users), arm B may not exist (Claude Code does not persist transcripts), several-hundred-dollar API spend before the rig is even validated. Token count is also a proxy for the wrong thing — what memex improves is workflow friction, not token economy."
+      },
+      {
+        "description": "Compare only memex context vs. PR body, omitting git log on key_artifacts",
+        "reason": "git log on the affected files is what a thoughtful non-memex user would actually paste; omitting it would be a strawman baseline. Including it makes the comparison harder for memex but more credible."
+      },
+      {
+        "description": "Limit git log to a time window (e.g. last 90 days before node creation)",
+        "reason": "Arbitrary cutoff that would shrink the baseline. Full git log on the artifact files is the honest \"everything available to the user\" upper bound; users who scope tighter can read that as ceiling. The ratio that matters is order-of-magnitude, not exact."
+      }
+    ],
+    "open_threads": [
+      "If adoption is later blocked by credible 'show me a number' skepticism, revisit a slimmed benchmark: one repo, N=3, memex vs git-log only (drop transcript-dump), use 'diff compiles + tests pass' as quality signal instead of an LLM judge. Estimated cost ~5-10% of issue #38.",
+      "Phase 2 case studies in README/docs need to quote these numbers as footnotes; the persuasive surface is the side-by-side excerpts, not the table here. Phase 2 is a separate downstream node.",
+      "Should context-size.sh accept --depth N to show how memex's payload scales with depth? Deferred — current depth=3 matches what AGENTS.md tells users to run, and adding the flag now would be premature."
+    ],
+    "key_artifacts": [
+      "scripts/context-size.sh",
+      "bench/token-ablation.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
