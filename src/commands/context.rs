@@ -26,15 +26,11 @@ impl OutputFormat {
 
 pub fn run(id: Option<&str>, format: OutputFormat, depth: usize) -> Result<()> {
     let store = GraphStore::open_from_cwd()?;
-    let graph = store.load_graph()?;
     let node_id = store.resolve_node_id(id)?;
     let nodes = store.load_all_nodes()?;
     let node_map: HashMap<Uuid, &ConversationNode> = nodes.iter().map(|n| (n.id, n)).collect();
 
-    // Build parent path: from root to target node
-    let root_id = graph
-        .root_id
-        .ok_or_else(|| anyhow::anyhow!("Graph has no root node"))?;
+    let root_id = find_root(&nodes)?;
 
     let path = match find_path(root_id, node_id, &node_map) {
         Some(p) => p,
@@ -57,6 +53,25 @@ pub fn run(id: Option<&str>, format: OutputFormat, depth: usize) -> Result<()> {
 
     println!("{}", output);
     Ok(())
+}
+
+/// The root is the unique node with empty `parent_ids`. Anything else
+/// indicates an empty store or a corrupted graph (e.g. an orphan node
+/// created by hand-editing JSON).
+pub(crate) fn find_root(nodes: &[ConversationNode]) -> Result<Uuid> {
+    let roots: Vec<Uuid> = nodes
+        .iter()
+        .filter(|n| n.parent_ids.is_empty())
+        .map(|n| n.id)
+        .collect();
+    match roots.as_slice() {
+        [single] => Ok(*single),
+        [] => anyhow::bail!("No root node found. Run `memex init`."),
+        multiple => anyhow::bail!(
+            "Graph has {} root nodes (expected 1). A node with empty parent_ids was likely created by hand-editing.",
+            multiple.len()
+        ),
+    }
 }
 
 /// Trim the ancestor section (path[1..len-1]) to at most `depth` nodes,

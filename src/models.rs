@@ -78,21 +78,6 @@ impl ConversationNode {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Graph {
-    pub version: String,
-    pub root_id: Option<Uuid>,
-}
-
-impl Graph {
-    pub fn new() -> Self {
-        Graph {
-            version: "1".to_string(),
-            root_id: None,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct State {
     pub active_id: Option<Uuid>,
 }
@@ -323,30 +308,6 @@ mod tests {
         assert_eq!(back.summary.decisions, vec!["Use async"]);
         assert_eq!(back.summary.rejected_approaches.len(), 1);
         assert_eq!(back.summary.rejected_approaches[0].description, "Threads");
-    }
-
-    #[test]
-    fn graph_json_roundtrip() {
-        let mut g = Graph::new();
-        let root = Uuid::new_v4();
-        g.root_id = Some(root);
-
-        let json = serde_json::to_string(&g).unwrap();
-        let back: Graph = serde_json::from_str(&json).unwrap();
-
-        assert_eq!(back.root_id, Some(root));
-    }
-
-    #[test]
-    fn graph_json_roundtrip_ignores_legacy_edges() {
-        let root = Uuid::new_v4();
-        let child = Uuid::new_v4();
-        // Simulate a graph.json written by an older version that included edges
-        let legacy = format!(
-            r#"{{"version":"1","root_id":"{root}","edges":[{{"from":"{root}","to":"{child}"}}]}}"#
-        );
-        let g: Graph = serde_json::from_str(&legacy).unwrap();
-        assert_eq!(g.root_id, Some(root));
     }
 
     #[test]

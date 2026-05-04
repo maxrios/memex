@@ -8,7 +8,6 @@ use crate::store::GraphStore;
 
 pub fn view() -> Result<()> {
     let store = GraphStore::open_from_cwd()?;
-    let graph = store.load_graph()?;
     let state = store.load_state()?;
     let nodes = store.load_all_nodes()?;
 
@@ -27,25 +26,13 @@ pub fn view() -> Result<()> {
         }
     }
 
-    // Find roots: nodes with no parents (or the designated root_id first)
-    let mut roots: Vec<Uuid> = nodes
+    // Roots are nodes with no parents. `load_all_nodes` already sorts by
+    // created_at, so multiple-root output is stable across runs.
+    let roots: Vec<Uuid> = nodes
         .iter()
         .filter(|n| n.parent_ids.is_empty())
         .map(|n| n.id)
         .collect();
-
-    // Put designated root first
-    if let Some(root_id) = graph.root_id {
-        roots.sort_by(|a, b| {
-            if *a == root_id {
-                std::cmp::Ordering::Less
-            } else if *b == root_id {
-                std::cmp::Ordering::Greater
-            } else {
-                std::cmp::Ordering::Equal
-            }
-        });
-    }
 
     println!("Conversation Graph");
     println!("{}", "═".repeat(50));
