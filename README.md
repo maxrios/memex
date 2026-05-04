@@ -200,14 +200,12 @@ editor = ""      # defaults to $EDITOR
 | Path | Committed | Notes |
 |---|---|---|
 | `.memex/config.toml` | Yes | Shared project settings |
-| `.memex/graph.json` | Yes | DAG edges and root node pointer |
-| `.memex/nodes/*.json` | Yes | Full conversation node history |
+| `.memex/nodes/*.json` | Yes | Full conversation node history; each node's `parent_ids` is the source of truth for the DAG |
 | `.memex/state.json` | No | Local session state (active node) |
 
 ```
 .memex/
   config.toml       # committed - shared settings
-  graph.json        # committed - DAG structure
   nodes/
     <uuid>.json     # committed - one file per node
   state.json        # gitignored - local session state
