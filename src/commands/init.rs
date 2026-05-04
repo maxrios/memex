@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 
 use crate::editor;
 use crate::git;
-use crate::models::{ConversationNode, Graph, NodeSummary, State};
+use crate::models::{ConversationNode, NodeSummary, State};
 use crate::store::GraphStore;
 
 pub fn run() -> Result<()> {
@@ -47,12 +47,8 @@ pub fn run() -> Result<()> {
     let root_id = root_node.id;
     store.save_node(&root_node)?;
 
-    // Create graph
-    let mut graph = Graph::new();
-    graph.root_id = Some(root_id);
-    store.save_graph(&graph)?;
-
-    // Set active node
+    // Set active node. The root is identified at read time as the unique node
+    // with empty parent_ids, so no separate graph file is needed.
     let state = State {
         active_id: Some(root_id),
     };

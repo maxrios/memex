@@ -1,0 +1,46 @@
+{
+  "id": "9943671a-cdd9-42d9-b90d-90e9547d96b5",
+  "parent_ids": [
+    "b95077e3-0e5f-4dc8-ae2d-3511ea3e076e"
+  ],
+  "git_ref": "fix/remove-graph-json (2c7e8cbc)",
+  "created_at": "2026-05-04T02:17:01.759918Z",
+  "updated_at": "2026-05-04T02:25:22.796056Z",
+  "summary": {
+    "goal": "Remove .memex/graph.json entirely; derive root from unique parent-less node; simplify memex-check workflow (closes #50)",
+    "decisions": [
+      "Removed the Graph struct, save_graph/load_graph/graph_path, and the graph.json file from the repo. Root is derived as the unique node whose parent_ids is empty — that single rule replaces both 'graph.root_id is the source of truth for the root' and 'graph.json must be updated on every node create'.",
+      "context.rs requires exactly one root (errors on 0 or >1 parent-less nodes via find_root); graph.rs view stays permissive (renders each parent-less node as a separate tree). Different needs: context produces a single linear payload; view is exploratory and should still render whatever's on disk.",
+      "memex-check workflow now: keep 'new node JSON added' editorial gate; replace the two graph.json checks with 'every UUID in parent_ids references an existing .memex/nodes/<uuid>.json at HEAD' (or, for empty parent_ids, exactly one parent-less node post-merge)."
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Restore edges to the Graph struct so memex node create writes graph.json again (Option A in PR #48's body)",
+        "reason": "Would undo b95077e3's deliberate single-source-of-truth decision. The bug is that b95077e3 stopped halfway, not that it went too far. Completing it is the correct fix."
+      },
+      {
+        "description": "Keep graph.json with just root_id (drop only the dead version field)",
+        "reason": "root_id is derivable from the unique parent-less node. Keeping a file that exists only to record a derivable fact preserves the temptation to hand-edit it (which is exactly what #50 was about)."
+      },
+      {
+        "description": "Add an is_root: bool field to ConversationNode",
+        "reason": "Creates a second source of truth for what \"root\" means (the field vs. parent_ids being empty). Same dual-representation problem b95077e3 was trying to remove."
+      }
+    ],
+    "open_threads": [
+      "Existing user checkouts may still have a stale .memex/graph.json on disk — load_graph is gone so it is just ignored, but the file lingers until the user does git pull. No migration logic added. Document in README if/when this matters; cheap to add later.",
+      "graph view silently renders multiple trees if the graph has multiple parent-less nodes. Post-init that only happens via hand-editing — a warning printed in that case would surface the corruption faster than waiting for a context call to error."
+    ],
+    "key_artifacts": [
+      "src/models.rs",
+      "src/store.rs",
+      "src/commands/init.rs",
+      "src/commands/context.rs",
+      "src/commands/graph.rs",
+      ".github/workflows/memex-check.yml"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

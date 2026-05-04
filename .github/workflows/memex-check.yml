@@ -15,11 +15,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify memex node and graph.json
+      - name: Verify memex node and parent references
         run: |
           BASE=origin/${{ github.base_ref }}
 
-          # 1. New node files
+          # 1. New node files added
           NEW_NODES=$(git diff --name-only --diff-filter=A "$BASE"...HEAD -- '.memex/nodes/*.json')
           if [ -z "$NEW_NODES" ]; then
             echo "::error::No new memex node found in .memex/nodes/. Run: memex node create --parent <id> --goal \"<goal>\""
@@ -27,25 +27,37 @@ jobs:
           fi
           echo "New node(s) found: $NEW_NODES"
 
-          # 2. graph.json updated
-          GRAPH_CHANGED=$(git diff --name-only "$BASE"...HEAD -- '.memex/graph.json')
-          if [ -z "$GRAPH_CHANGED" ]; then
-            echo "::error::.memex/graph.json was not updated. Ensure memex node create was run."
-            exit 1
-          fi
-          echo "graph.json was updated."
-
-          # 3. Each new node is referenced in graph.json
+          # 2. Each new node's parent_ids reference existing node files at HEAD,
+          #    OR the new node has empty parent_ids and is the only such node
+          #    (i.e. a legitimate root, which only happens once per project).
           FAILED=0
           for NODE_PATH in $NEW_NODES; do
             UUID=$(basename "$NODE_PATH" .json)
-            if jq -e --arg id "$UUID" \
-              '.root_id == $id or any(.edges[]; .from == $id or .to == $id)' \
-              .memex/graph.json > /dev/null 2>&1; then
-              echo "Node $UUID is referenced in graph.json."
-            else
-              echo "::error::Node $UUID is not referenced in graph.json."
-              FAILED=1
+            PARENTS=$(jq -r '.parent_ids[]?' "$NODE_PATH")
+            if [ -z "$PARENTS" ]; then
+              # Count parent-less nodes across the post-merge tree
+              ROOTS=0
+              for f in .memex/nodes/*.json; do
+                COUNT=$(jq -r '.parent_ids | length' "$f")
+                if [ "$COUNT" = "0" ]; then
+                  ROOTS=$((ROOTS + 1))
+                fi
+              done
+              if [ "$ROOTS" -ne 1 ]; then
+                echo "::error::Node $UUID has empty parent_ids but $ROOTS parent-less nodes exist. The graph must have exactly one root."
+                FAILED=1
+              else
+                echo "Node $UUID is the unique root."
+              fi
+              continue
             fi
+            for P in $PARENTS; do
+              if [ -f ".memex/nodes/$P.json" ]; then
+                echo "Node $UUID parent $P: ok."
+              else
+                echo "::error::Node $UUID references parent $P which has no .memex/nodes/$P.json."
+                FAILED=1
+              fi
+            done
           done
           exit $FAILED

@@ -21,7 +21,7 @@
 
 **One JSON file per node.** `.memex/nodes/<uuid>.json` keeps diffs human-readable and merge-friendly; avoid bundling multiple nodes into a single file.
 
-**`graph.json` is shared, `state.json` is per-developer.** `graph.json` holds edges + root pointer and is committed. `state.json` holds the active-node pointer for the current developer and is `.gitignore`'d — committing it creates guaranteed merge conflicts.
+**`state.json` is per-developer; everything else under `.memex/` is committed.** `state.json` holds the active-node pointer for the current developer and is `.gitignore`'d — committing it creates guaranteed merge conflicts. The DAG structure has no shared file: the root is the unique node with empty `parent_ids`, and edges are derived at read time by inverting each node's `parent_ids`.
 
 **Git via subprocess.** Integration shells out to `git` rather than linking libgit2. Keeps the dependency footprint small and matches user expectations (same git binary, same config, same auth).
 
@@ -34,7 +34,7 @@
 ```
 src/
   main.rs               - CLI entrypoint, clap derive command tree
-  models.rs             - ConversationNode, NodeSummary, NodeStatus, Graph, State, Config
+  models.rs             - ConversationNode, NodeSummary, NodeStatus, State, Config
   store.rs              - GraphStore: all file I/O abstracted here
   editor.rs             - $EDITOR integration via temp TOML file
   git.rs                - git detection via subprocess (no libgit2)
@@ -105,7 +105,7 @@ This project tracks its own development using `memex`. Follow this pattern for e
 
 6. **Resolve or abandon** - Run `cargo fmt --all -- --check`, `cargo clippy --all-targets -- -D warnings`, and `cargo test --all-targets` locally; all three must pass. Then `memex node resolve` when the work is complete. If the task is superseded or turns out to be the wrong approach, use `memex node abandon` with a note in the summary explaining why.
 
-7. **Commit** - Commit source changes and `.memex/graph.json` + `.memex/nodes/` together — they describe the same unit of work. Never commit `.memex/state.json`: it's per-developer working-node state and will create merge conflicts. Documentation updates (CLAUDE.md, README.md) go in a separate commit so the source diff and doc diff are independently reviewable.
+7. **Commit** - Commit source changes and `.memex/nodes/` together — they describe the same unit of work. Never commit `.memex/state.json`: it's per-developer working-node state and will create merge conflicts. Documentation updates (CLAUDE.md, README.md) go in a separate commit (same PR) so the source diff and doc diff are independently reviewable.
 
 8. **Push** and open a PR.
 

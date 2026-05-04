@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use uuid::Uuid;
 
-use crate::models::{Config, ConversationNode, Graph, State};
+use crate::models::{Config, ConversationNode, State};
 
 pub struct GraphStore {
     pub root: PathBuf,
@@ -47,10 +47,6 @@ impl GraphStore {
         self.memex_dir().join("nodes")
     }
 
-    pub fn graph_path(&self) -> PathBuf {
-        self.memex_dir().join("graph.json")
-    }
-
     pub fn state_path(&self) -> PathBuf {
         self.memex_dir().join("state.json")
     }
@@ -87,24 +83,6 @@ impl GraphStore {
         }
 
         Ok(())
-    }
-
-    // -------------------------------------------------------------------------
-    // Graph
-    // -------------------------------------------------------------------------
-
-    pub fn load_graph(&self) -> Result<Graph> {
-        let path = self.graph_path();
-        if !path.exists() {
-            return Ok(Graph::new());
-        }
-        let data = fs::read_to_string(&path).context("Failed to read graph.json")?;
-        serde_json::from_str(&data).context("Failed to parse graph.json")
-    }
-
-    pub fn save_graph(&self, graph: &Graph) -> Result<()> {
-        let data = serde_json::to_string_pretty(graph).context("Failed to serialize graph")?;
-        fs::write(self.graph_path(), data).context("Failed to write graph.json")
     }
 
     // -------------------------------------------------------------------------
@@ -292,29 +270,6 @@ mod tests {
         store.initialize().unwrap();
         let content = fs::read_to_string(store.config_path()).unwrap();
         assert_eq!(content, "custom = true");
-    }
-
-    // --- Graph I/O ---
-
-    #[test]
-    fn save_and_load_graph_roundtrip() {
-        let (_tmp, store) = make_store();
-        let mut g = Graph::new();
-        let root = Uuid::new_v4();
-        g.root_id = Some(root);
-
-        store.save_graph(&g).unwrap();
-        let loaded = store.load_graph().unwrap();
-
-        assert_eq!(loaded.root_id, Some(root));
-    }
-
-    #[test]
-    fn load_graph_returns_empty_when_missing() {
-        let (_tmp, store) = make_store();
-        // graph.json was not written during initialize()
-        let g = store.load_graph().unwrap();
-        assert!(g.root_id.is_none());
     }
 
     // --- Node I/O ---
