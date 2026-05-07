@@ -1,4 +1,4 @@
-# Token-size ablation: memex context vs. git baselines
+# Token-size benchmark: memex context vs. git baselines
 
 A comparison of context-payload sizes for three representative nodes. Approximate tokens at chars / 4 (close enough for an order-of-magnitude comparison; not exact tokenizer output).
 
