@@ -1,0 +1,29 @@
+{
+  "id": "6ec70261-b69e-41a4-9ea4-e41bcf6eb6cf",
+  "parent_ids": [
+    "15b2ec54-8601-48e5-8e4c-7cc8cbb6a7db"
+  ],
+  "git_ref": "chore/rename-token-benchmark (ee377387)",
+  "created_at": "2026-05-07T16:03:58.110258Z",
+  "updated_at": "2026-05-07T16:07:00.982836Z",
+  "summary": {
+    "goal": "Rename bench/token-ablation.md to bench/token-benchmark.md (file, document title, and all references)",
+    "decisions": [
+      "Renamed file via git mv (preserves rename detection in git log/blame) rather than delete + recreate.",
+      "Updated only the file, its title, and current-tree references; left past node 15b2ec54's key_artifacts entry pointing at bench/token-ablation.md unchanged."
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Edit node 15b2ec54's key_artifacts to point at the new filename so the pointer still resolves from current state.",
+        "reason": "Past resolved nodes are immutable historical records of work done at that time. The current node already records the rename, which is the trail readers should follow forward; rewriting the past node erases history. Future tooling that resolves stale paths should walk git rename history, not depend on retroactive node edits."
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      "bench/token-benchmark.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
