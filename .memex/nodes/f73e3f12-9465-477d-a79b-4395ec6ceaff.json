@@ -1,0 +1,48 @@
+{
+  "id": "f73e3f12-9465-477d-a79b-4395ec6ceaff",
+  "parent_ids": [
+    "bbb06973-3c59-4a14-86d1-37dc2b971225"
+  ],
+  "git_ref": "feat/claude-plugin (f3f9081b)",
+  "created_at": "2026-05-12T02:15:03.147393Z",
+  "updated_at": "2026-05-12T02:35:30.420313Z",
+  "summary": {
+    "goal": "Ship a Claude plugin (claude-plugin/) bundling a single 'memex' skill that externalizes the AGENTS.md workflow for autonomous agents working in memex-enabled repos outside this one",
+    "decisions": [
+      "Co-locate the plugin in the memex repo at claude-plugin/, versioned in lockstep with the CLI. Any PR that changes a subcommand or flag must update SKILL.md in the same diff — co-location forces this, separate repo would allow silent drift.",
+      "Ship a single skill (no slash commands, no hooks, no MCP server). Skill-only fits the autonomous-agent use case; slash commands are ergonomic shortcuts for humans-in-the-loop and were explicitly out of scope.",
+      "Skill description carries both implicit ('.memex/ directory present, about to make a code change') and explicit ('user mentions memex, nodes, tracked work') triggers. Implicit-only would miss user-initiated invocations; explicit-only would miss the agentic happy path.",
+      "Promote 'memex context --format xml' to the orientation step at the top of the workflow, ahead of list/show/graph. It's the only CLI command that delivers pre-shaped ancestor context in a single call; chaining is the wasteful alternative.",
+      "Make the memex repo itself a marketplace via .claude-plugin/marketplace.json at the root, with a single entry pointing at claude-plugin/. Without a marketplace there is no install path, so no way to dogfood the skill before shipping."
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Put the plugin in a separate repository for independent release cadence and plugin-discovery cleanliness",
+        "reason": "The skill describes the CLI surface; a separate repo would let the skill drift silently as flags and subcommands change. Same-repo forces every CLI-changing PR to update SKILL.md in the same diff. Split later via git subtree if the plugin grows adapters for other agents."
+      },
+      {
+        "description": "Ship slash commands like /memex-start and /memex-resolve alongside the skill",
+        "reason": "User explicitly chose skill-only for the autonomous-agent use case. Slash commands are an ergonomic layer for humans driving Claude Code interactively; they would not help an autonomous agent already capable of invoking the CLI directly. Add later if a human-in-the-loop workflow emerges."
+      },
+      {
+        "description": "Hard-pick --format xml and --depth N defaults inside the skill body",
+        "reason": "Right values depend on graph shape, which the agent can read from `memex graph view`. The skill should expose the levers and let the model choose, not prescribe values that may be wrong for the target graph."
+      }
+    ],
+    "open_threads": [
+      "AGENTS.md still contains the full 'how to use memex' workflow that the skill now duplicates. Decide whether to slim AGENTS.md to just memex-self-development details (scripts, project structure, Rust conventions) and let the skill carry the workflow — or keep both as belt-and-suspenders. Out of scope for this PR.",
+      "CI does not validate the skill's example invocations against the actual memex binary. A flag rename in main.rs would not fail CI even though it silently breaks SKILL.md. Worth adding a smoke test that exercises each command form referenced in SKILL.md.",
+      "Plugin is installable from a local checkout (claude plugin add ./claude-plugin) but is not published to any marketplace. Publication path (claude-plugins-official marketplace? a memex-owned marketplace? plain git URL?) is undecided.",
+      "Skill verifies the CLI is present via 'memex --version' but does not parse the version. If the CLI surface diverges across versions, the skill cannot adapt; right now it implicitly assumes the latest. Worth revisiting once the CLI hits 1.0 and version-aware behavior matters."
+    ],
+    "key_artifacts": [
+      "claude-plugin/.claude-plugin/plugin.json",
+      "claude-plugin/skills/memex/SKILL.md",
+      "claude-plugin/README.md",
+      ".claude-plugin/marketplace.json"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
