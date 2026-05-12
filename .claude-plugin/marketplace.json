@@ -1,0 +1,18 @@
+{
+  "name": "memex",
+  "owner": {
+    "name": "Maximiliano Rios",
+    "email": "max@maxrios.dev"
+  },
+  "metadata": {
+    "description": "Plugins shipped alongside the memex CLI.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "memex",
+      "description": "Workflow skill for memex-enabled repositories — teaches autonomous agents how to track development as nodes in the .memex/ DAG.",
+      "source": "./claude-plugin"
+    }
+  ]
+}

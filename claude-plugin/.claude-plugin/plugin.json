@@ -1,0 +1,9 @@
+{
+  "name": "memex",
+  "description": "Workflow skill for memex-enabled repositories. Teaches autonomous agents how to track development as nodes in the .memex/ DAG: orient via `memex context`, pick a parent, branch, create a node before coding, record decisions/rejected/open-threads as work progresses, and resolve cleanly.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Maximiliano Rios",
+    "email": "max@maxrios.dev"
+  }
+}
