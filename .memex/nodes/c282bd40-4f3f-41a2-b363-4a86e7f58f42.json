@@ -1,0 +1,38 @@
+{
+  "id": "c282bd40-4f3f-41a2-b363-4a86e7f58f42",
+  "parent_ids": [
+    "df31d357-3578-40f6-ac0b-787c9471b9d1"
+  ],
+  "git_ref": "fix/release-workflow-macos-runner (b8f6a035)",
+  "created_at": "2026-05-12T03:58:07.621981Z",
+  "updated_at": "2026-05-12T03:59:14.379506Z",
+  "summary": {
+    "goal": "Fix release workflow: GitHub retired the macos-13 runner, so build x86_64-apple-darwin queues forever. Cross-compile x86_64-apple-darwin from macos-latest (Apple Silicon) instead.",
+    "decisions": [
+      "Cross-compile x86_64-apple-darwin on the macos-latest runner (Apple Silicon) via cargo's --target flag, rather than using a dedicated Intel runner. macos-13 was retired by GitHub during 2025, and macos-12 before that — no Intel macOS runner image remains in 2026. dtolnay/rust-toolchain@stable installs the requested target, so the existing 'targets: ${{ matrix.target }}' step already handles cross-compilation."
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Drop x86_64-apple-darwin from the release matrix",
+        "reason": "Intel Macs are EOL on Apple's side (last sold 2023, Sequoia is the last supporting macOS). Simpler workflow. But dropping coverage now would be a one-way decision that leaves Intel users with only the cargo-install path; cross-compiling is roughly free on a runner that's already in the matrix, so worth keeping."
+      },
+      {
+        "description": "Use a third-party self-hosted macOS-Intel runner",
+        "reason": "Adds an external infra dependency and per-minute cost for a niche binary. Cross-compilation from macos-latest gets us the same artifact for free."
+      },
+      {
+        "description": "Build a single universal (lipo'd) macOS binary instead of separate x86_64/arm64 artifacts",
+        "reason": "Possible — `lipo -create` merges the two architectures. But it changes the artifact shape for v0.1.0 mid-flight, breaks any download URL conventions a user might already script against, and is a separate decision worth making deliberately rather than as part of an urgent fix. Stick to separate per-arch tarballs for now."
+      }
+    ],
+    "open_threads": [
+      "After this PR merges, the v0.1.0 tag must be force-deleted locally and on origin, then re-pushed against the fixed main: 'git push origin :v0.1.0' then 'git tag -f v0.1.0 <main-tip>' then 'git push origin v0.1.0'. Safe because no consumer has v0.1.0 yet (crates.io publish never ran). If a v0.1.0 had already been promoted, we would have cut v0.1.1 instead."
+    ],
+    "key_artifacts": [
+      ".github/workflows/release.yml"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
