@@ -90,6 +90,8 @@ Conventions specific to *developing memex itself* (not in the skill):
 
   Title ends with `(closes #N)` when the PR resolves an issue.
 
+- **Releases.** The cut process lives in [RELEASING.md](RELEASING.md). Tags matching `v*` trigger the release workflow, which builds binaries for Linux/macOS/Windows, attaches them to a draft GitHub release, and publishes to crates.io.
+
 ## Documentation hygiene
 
 After implementing any change, check whether it affects user-visible behavior, CLI output, or workflow guidance:
