@@ -3,6 +3,13 @@ name = "memex"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.74"
+description = "A CLI tool for organizing AI-assisted development into a versioned, navigable DAG of conversation nodes."
+license = "GPL-3.0-only"
+repository = "https://github.com/maxrios/memex"
+homepage = "https://github.com/maxrios/memex"
+readme = "README.md"
+keywords = ["cli", "ai", "llm", "dag", "developer-tools"]
+categories = ["command-line-utilities", "development-tools"]
 
 [[bin]]
 name = "memex"

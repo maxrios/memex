@@ -10,6 +10,18 @@ Conversations are ephemeral and flat, but real development is hierarchical and b
 
 ## Installation
 
+### From crates.io
+
+```
+cargo install memex
+```
+
+### Prebuilt binaries
+
+Download the archive for your platform from the [latest GitHub release](https://github.com/maxrios/memex/releases/latest) and extract the `memex` binary onto your `PATH`. Each archive ships with a `.sha256` checksum file for verification.
+
+### From source
+
 ```
 cargo build --release
 cp target/release/memex /usr/local/bin/
