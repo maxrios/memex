@@ -1,0 +1,37 @@
+{
+  "id": "38266f86-b622-4956-a727-97fefbcf58c1",
+  "parent_ids": [
+    "df31d357-3578-40f6-ac0b-787c9471b9d1"
+  ],
+  "git_ref": "main (b8f6a035)",
+  "created_at": "2026-05-12T03:38:09.675254Z",
+  "updated_at": "2026-05-12T03:48:59.171052Z",
+  "summary": {
+    "goal": "Make release cuts memex-native: each release gets its own tracked node, so the release-prep PR satisfies memex-check naturally without [skip memex]",
+    "decisions": [
+      "Each release cut creates its own memex node (parent = main tip at the time of release). This makes the release-prep PR satisfy memex-check naturally and captures release-scope context — what shipped, what was deferred — in the graph alongside development work.",
+      "Release flow switches from direct-push-to-main (original RELEASING.md v0.1.0) to a PR-based flow with branch release/v<version>. Keeps human review on every release, runs CI + memex-check on the version bump, and matches the rest of the project's PR-based contribution model."
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Add [skip memex] to the release-prep PR title to bypass memex-check",
+        "reason": "Functionally simplest, but special-cases the release PR with a marker that future maintainers might cargo-cult onto other PRs. Treating each release as a tracked node fits the project philosophy (\"memex tracks its own development\") and removes the bypass altogether — no marker to misuse."
+      },
+      {
+        "description": "Loosen memex-check to auto-bypass PRs that only touch Cargo.toml/Cargo.lock/CHANGELOG.md",
+        "reason": "Adds logic and a maintenance surface to the workflow for a once-per-release case. Easier to put the burden on the maintainer (create a node) than on the check (detect the shape of a release PR)."
+      },
+      {
+        "description": "Direct-push-to-main for the release commit (original v0.1.0 RELEASING.md)",
+        "reason": "memex-check is PR-only, so direct push does bypass it — but loses PR review on the version bump and the changelog roll, and is inconsistent with the rest of the contribution model. Worth keeping the same review gate for releases as for any other change."
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      "RELEASING.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
