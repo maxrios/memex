@@ -1,0 +1,42 @@
+{
+  "id": "8e228c8f-ca76-48eb-9c25-4d8e629d869b",
+  "parent_ids": [
+    "f73e3f12-9465-477d-a79b-4395ec6ceaff"
+  ],
+  "git_ref": "docs/slim-agents-md (a840e08e)",
+  "created_at": "2026-05-12T02:51:54.636159Z",
+  "updated_at": "2026-05-12T02:53:15.358112Z",
+  "summary": {
+    "goal": "Slim AGENTS.md: drop the workflow section (now duplicated by the memex Claude plugin skill) and replace it with a one-paragraph pointer plus a short list of memex-self-development conventions (test placement, verification commands, branch naming, PR template) that the skill does not cover",
+    "decisions": [
+      "Replace the 8-step workflow with a one-paragraph pointer to claude-plugin/skills/memex/SKILL.md. Skill triggers reliably in this repo (.memex/ present), so contributors get the workflow when it actually matters — when they're about to make a code change.",
+      "Keep a short 'memex-self-development conventions' list in AGENTS.md (tests, verification, branch names, PR template). These are this-repo specifics not in the skill — the skill teaches CLI usage, not how to contribute to memex's Rust codebase.",
+      "Add SKILL.md to the documentation-hygiene checklist. With three doc surfaces (AGENTS.md, README.md, SKILL.md) that can each describe CLI behavior, drift between them is the predictable failure mode; the checklist is the cheapest guard.",
+      "Audited README.md after slimming AGENTS.md. README has its own 6-bullet workflow under 'Workflow' (line 134) framed for new users adopting memex in any project — not for memex-self-development. It does not duplicate the skill's depth (parent-selection nuance, decisions-as-you-go, resolve-only-after-tests). Left as-is — different audience, different framing, no drift risk."
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Keep AGENTS.md untouched as belt-and-suspenders alongside the skill",
+        "reason": "Duplication invites drift. A flag rename gets fixed in SKILL.md but not AGENTS.md (or vice versa) and contributors hit stale guidance. Single source of truth wins; the skill triggers reliably in this repo so there is no coverage gap."
+      },
+      {
+        "description": "Delete AGENTS.md entirely now that the skill exists",
+        "reason": "AGENTS.md still carries content the skill does not — Rust stack, project structure, internal-design decisions (one-JSON-per-node, GraphStore I/O, state.json gitignore rationale), cargo scripts, doc-hygiene rule. The skill is repo-agnostic; AGENTS.md is memex-specific. Deleting it would lose the repo-specific guidance."
+      },
+      {
+        "description": "Keep the IMPORTANT directive (Do not write code before steps 1-3) at the top of the slimmed workflow section",
+        "reason": "The directive belongs with the workflow it gates. Now that the workflow lives in SKILL.md, the directive is implicit in the skill body (which says \"create the node before writing code\"). Carrying it forward in AGENTS.md would duplicate without adding force, since AGENTS.md no longer contains the steps it would gate."
+      }
+    ],
+    "open_threads": [
+      "AGENTS.md and SKILL.md now both list a PR template and branch-naming convention (the conventions are memex-self-development specific in AGENTS.md; the skill mentions branch types in passing). Watch for drift; consider consolidating into one place if it becomes a problem.",
+      "README.md may still reference the old workflow steps in its 'How memex works' section. Did not audit as part of this PR; worth a quick grep for 'memex node create' and 'find a parent' to confirm."
+    ],
+    "key_artifacts": [
+      "AGENTS.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

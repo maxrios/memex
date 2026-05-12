@@ -50,7 +50,7 @@ tests/
 
 ## Where the work is tracked
 
-memex tracks its own development as memex nodes. There is no external issue tracker — the frontier lives in `.memex/`. Run `memex node list` to see current state; use `memex graph` to see branching. Old plans or design notes do not supersede the live graph.
+memex tracks its own development as memex nodes. There is no external issue tracker — the frontier lives in `.memex/`. Run `memex node list` to see current state; use `memex graph view` to see branching. Old plans or design notes do not supersede the live graph.
 
 ## Scripts
 
@@ -69,65 +69,33 @@ CI (`.github/workflows/ci.yml`) runs fmt-check, clippy-with-deny-warnings, and t
 
 ## Development workflow
 
-> **IMPORTANT:** For any code change, bug fix, or new feature — always execute the steps below without being explicitly asked. Do not write any code before completing steps 1–3 (find parent node, branch, create node).
+The full workflow — finding a parent node, branching, creating a node before writing code, recording decisions / rejected / open-threads as you go, resolving, committing — lives in the **`memex` Claude plugin skill** at [`claude-plugin/skills/memex/SKILL.md`](claude-plugin/skills/memex/SKILL.md). The skill triggers automatically in this repo because `.memex/` is present; treat it as the source of truth.
 
-This project tracks its own development using `memex`. Follow this pattern for every feature or fix:
+Conventions specific to *developing memex itself* (not in the skill):
 
-1. **Find a parent node** - Choose the parent based on what your work _depends on_, not just what is most recent:
-   - `memex graph` - visualize the current DAG to see branching structure
-   - `memex node list` - shows all nodes with IDs, parent IDs, statuses, git refs, and one-line goals
-   - `memex search <keyword>` - full-text search across node summaries; use domain terms (e.g. `config`, `search`, `rename`) to surface related prior work
-   - If your work extends a specific prior feature, attach to that feature's node even if it isn't the tip
-   - If your work is independent of recent changes, find the most recent resolved node whose scope your work builds on
-   - If your work depends directly on what just landed, attach to the active node (the linear case, correct when the dependency is real)
-   - e.g. adding tests for the search command → parent is the node that implemented search, not documentation or cleanup nodes that landed after it
-   - e.g. fixing a crash in `node edit` → parent is the node that introduced `node edit`, not whatever resolved most recently
-   - e.g. adding a new `memex export` command → find the most recent node that touched the CLI structure; skip unrelated docs or refactors that followed it
+- **Tests.** Non-trivial changes to `src/store.rs`, `src/models.rs`, or any `src/commands/*.rs` should come with tests — prefer integration tests in `tests/integration_tests.rs` for CLI-visible behavior, inline `#[cfg(test)]` modules for pure logic.
+- **Verification.** Run `cargo fmt --all -- --check`, `cargo clippy --all-targets -- -D warnings`, and `cargo test --all-targets` locally before resolving a node; all three must pass and CI gates on the same.
+- **Branch names.** `<type>/<name>` (e.g. `feat/export-command`, `fix/node-edit-crash`, `chore/audit-graph-parent-relationships`).
+- **PR template:**
 
-2. **Branch** - `git checkout -b <type>/<name>` from `main` (e.g. `fix/node-edit-crash`, `feat/export-command`, `test/store-roundtrip`, `chore/audit-graph-parent-relationships`).
+  ```markdown
+  ## Summary
 
-3. **Node** - `memex node create --parent <parent-id> --goal "<your goal here>"` before writing any code. Use the real goal if you already know it; a short placeholder is fine when the scope is still uncertain.
+  - 2–5 bullets: what changed and why
 
-4. **Implement** the feature. Non-trivial changes to `src/store.rs`, `src/models.rs`, or any `src/commands/*.rs` should come with tests — prefer integration tests in `tests/integration_tests.rs` for CLI-visible behavior, inline `#[cfg(test)]` modules for pure logic.
+  ## Test plan
 
-5. **Summarize** - Record as you go, not after. For every `--decision` you record, ask: _what alternative did I deliberately not take, and why?_ If there's an answer, that's a `--rejected`. Before resolving, ask: _what question did I defer, what caveat did I notice, what did I leave for later?_ Each one is an `--open-thread`. These two fields are under-used across the repo; using them gives future agents (and future-you) the context that decisions alone don't capture.
+  - Checklist of verification steps (commands to run, expected output)
+  ```
 
-   ```
-   memex node edit --decision "chose X over Y because Z"
-   memex node edit --artifact "path/to/key/file.rs"
-   memex node edit --open-thread "question to revisit later"
-   memex node edit --rejected $'description = "Alternative approach"\nreason = "Why rejected"'
-   memex node edit --goal "Updated goal if scope changed"
-   ```
-
-   Each flag appends to (or overwrites for `--goal`) the current node without touching other fields.
-   Use `--summary` only for a full bulk replacement (e.g. bootstrapping from a plan).
-
-6. **Resolve or abandon** - Run `cargo fmt --all -- --check`, `cargo clippy --all-targets -- -D warnings`, and `cargo test --all-targets` locally; all three must pass. Then `memex node resolve` when the work is complete. If the task is superseded or turns out to be the wrong approach, use `memex node abandon` with a note in the summary explaining why.
-
-7. **Commit** - Commit source changes and `.memex/nodes/` together — they describe the same unit of work. Never commit `.memex/state.json`: it's per-developer working-node state and will create merge conflicts. Documentation updates (CLAUDE.md, README.md) go in a separate commit (same PR) so the source diff and doc diff are independently reviewable.
-
-8. **Push** and open a PR.
-
-   PR description template — match what recent PRs already do:
-
-   ```markdown
-   ## Summary
-
-   - 2–5 bullets: what changed and why
-
-   ## Test plan
-
-   - Checklist of verification steps (commands to run, expected output)
-   ```
-
-   Title ends with `(closes #N)` when the PR resolves an issue. Branch names follow `<type>/<name>` (e.g. `fix/node-edit-crash`, `chore/audit-graph-parent-relationships`).
+  Title ends with `(closes #N)` when the PR resolves an issue.
 
 ## Documentation hygiene
 
 After implementing any change, check whether it affects user-visible behavior, CLI output, or workflow guidance:
 
-- If **CLAUDE.md** describes the changed behavior (commands, output format, workflow steps), update it.
+- If **AGENTS.md** describes the changed convention or repo-specific rule, update it.
 - If **README.md** documents the changed command or output, update it.
+- If **`claude-plugin/skills/memex/SKILL.md`** references a subcommand or flag whose surface changed, update it in the same diff — the skill drifts silently otherwise.
 
 Always make documentation updates a **separate commit** from the source change.
