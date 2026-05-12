@@ -12,8 +12,10 @@ Conversations are ephemeral and flat, but real development is hierarchical and b
 
 ### From crates.io
 
+The crate is published as `memex-cli` (the `memex` name is held by an unrelated crate); the installed binary is `memex`.
+
 ```
-cargo install memex
+cargo install memex-cli
 ```
 
 ### Prebuilt binaries

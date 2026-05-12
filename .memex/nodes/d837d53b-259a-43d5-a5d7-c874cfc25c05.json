@@ -1,0 +1,41 @@
+{
+  "id": "d837d53b-259a-43d5-a5d7-c874cfc25c05",
+  "parent_ids": [
+    "c282bd40-4f3f-41a2-b363-4a86e7f58f42"
+  ],
+  "git_ref": "chore/rename-crate-to-memex-cli (a11f6efe)",
+  "created_at": "2026-05-12T04:19:08.858609Z",
+  "updated_at": "2026-05-12T04:20:10.276073Z",
+  "summary": {
+    "goal": "Rename published crate from 'memex' to 'memex-cli' — the 'memex' name is taken on crates.io by an unrelated project (ooojustin/memex, 0.3.0, ~12k downloads). Binary name and project name stay 'memex'; only the crates.io listing changes.",
+    "decisions": [
+      "Published crate is 'memex-cli' (a different active project, ooojustin/memex, owns 'memex' on crates.io: 0.3.0, ~12k downloads, 'turn your Rust workspace into human-readable docs').",
+      "Keep the [[bin]] name = 'memex' and the clap #[command(name = 'memex')] in src/main.rs. The published crate is the only thing renamed; the installed binary, the repo, the CLI's self-identification (memex --version, --help) all stay 'memex'. User-facing impact is one line: 'cargo install memex-cli' instead of 'cargo install memex'."
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Pick a more thematic name (memex-graph, memex-dag, memex-dev)",
+        "reason": "memex-cli is the standard fallback pattern for CLIs whose preferred name is taken on crates.io (similar to many examples). Thematic names overspecify and lock us into a frame (graph, dag, dev) that may not age well. -cli is neutral and conventional."
+      },
+      {
+        "description": "Skip crates.io entirely; distribute only via GitHub releases + cargo install --git",
+        "reason": "Loses crates.io discoverability. Users searching for memex on crates.io see the other project and assume that's us. The rename cost is one line in Cargo.toml plus a README note; cheaper than the discoverability loss."
+      },
+      {
+        "description": "Ask ooojustin to transfer the memex name",
+        "reason": "Active project (last updated 2026-03-29, 0.3.0, ~12k downloads). Vanishingly unlikely to succeed and slow even if they considered it. Not a real option."
+      }
+    ],
+    "open_threads": [
+      "Before re-tagging v0.1.0: delete the existing draft GitHub release and its tag with 'gh release delete v0.1.0 --cleanup-tag --yes' (cleanup-tag drops both the draft and the tag in one go). Then 'git fetch --tags --prune --prune-tags' locally, retag main, and push the tag — the workflow will run end-to-end including the now-valid crates.io publish."
+    ],
+    "key_artifacts": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "README.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
