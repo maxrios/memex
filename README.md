@@ -143,6 +143,29 @@ ASCII tree of the full conversation graph. Shows status icons and marks the acti
 
 Full-text search across all node summaries, including goals, decisions, artifacts, open threads, rejected approaches, and tags.
 
+### `memex pr-context --file <path> [--file <path> ...]`
+
+Render a markdown payload listing every node whose `key_artifacts` exact-match one of the given files. Sorted most-recent-first. Designed to be piped into a PR comment so reviewers see what was tried, rejected, or left open in earlier work on these files.
+
+| Flag | Description |
+|---|---|
+| `--file <path>` | Repo-relative path to consider. Repeatable. |
+| `--marker <html>` | HTML marker comment used by automation to find and update an existing comment idempotently. Defaults to `<!-- memex-pr-context -->`. |
+
+Output is written to stdout. The first line is always the marker, so callers can locate prior comments without re-parsing the body.
+
+---
+
+## GitHub Action
+
+`.github/workflows/memex-pr-context.yml` ships with the repo and surfaces relevant memex node context as a PR comment on every push. To use it in another project, copy the workflow file and replace the build step with `cargo install --locked memex-cli`. The workflow:
+
+1. Computes changed files via `git diff --name-only origin/<base>...HEAD`.
+2. Pipes them to `memex pr-context`.
+3. Looks for an existing PR comment whose body starts with the marker, then updates it in place or creates a new one.
+
+Pull request titles containing `[skip memex]` skip the comment.
+
 ---
 
 ## Workflow
