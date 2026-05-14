@@ -6,6 +6,7 @@ use crate::models::{ConversationNode, NodeStatus};
 use crate::store::GraphStore;
 
 pub const DEFAULT_MARKER: &str = "<!-- memex-pr-context -->";
+pub const DEFAULT_LIMIT: usize = 5;
 
 /// Find nodes whose `key_artifacts` exact-match any of the given file paths.
 /// Returns nodes sorted by `created_at` descending (most recent first).
@@ -23,12 +24,14 @@ pub(crate) fn matching_nodes<'a>(
                 .any(|a| file_set.contains(a.as_str()))
         })
         .collect();
-    matches.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+    matches.sort_by_key(|n| std::cmp::Reverse(n.created_at));
     matches
 }
 
 /// Format the matched nodes as a markdown PR comment body.
-pub(crate) fn format_comment(matches: &[&ConversationNode], marker: &str) -> String {
+/// `limit` caps the number of nodes rendered (0 = unlimited). When the cap
+/// triggers, a trailing line announces how many older matches were omitted.
+pub(crate) fn format_comment(matches: &[&ConversationNode], marker: &str, limit: usize) -> String {
     let mut out = String::new();
     out.push_str(marker);
     out.push('\n');
@@ -44,7 +47,13 @@ pub(crate) fn format_comment(matches: &[&ConversationNode], marker: &str) -> Str
          rejected, or left open in earlier work on these files.\n\n",
     );
 
-    for node in matches {
+    let (rendered, omitted) = if limit == 0 || matches.len() <= limit {
+        (matches, 0usize)
+    } else {
+        (&matches[..limit], matches.len() - limit)
+    };
+
+    for node in rendered {
         let status_label = match node.status {
             NodeStatus::Active => "Active",
             NodeStatus::Resolved => "Resolved",
@@ -88,14 +97,22 @@ pub(crate) fn format_comment(matches: &[&ConversationNode], marker: &str) -> Str
         }
     }
 
+    if omitted > 0 {
+        out.push_str(&format!(
+            "_{} older matching node{} omitted; raise `--limit` to see more._\n",
+            omitted,
+            if omitted == 1 { "" } else { "s" }
+        ));
+    }
+
     out
 }
 
-pub fn run(files: &[String], marker: &str) -> Result<()> {
+pub fn run(files: &[String], marker: &str, limit: usize) -> Result<()> {
     let store = GraphStore::open_from_cwd()?;
     let nodes = store.load_all_nodes()?;
     let matches = matching_nodes(&nodes, files);
-    let body = format_comment(&matches, marker);
+    let body = format_comment(&matches, marker, limit);
     print!("{}", body);
     Ok(())
 }
@@ -192,14 +209,14 @@ mod tests {
 
     #[test]
     fn empty_body_for_no_matches() {
-        let body = format_comment(&[], DEFAULT_MARKER);
+        let body = format_comment(&[], DEFAULT_MARKER, DEFAULT_LIMIT);
         assert!(body.starts_with(DEFAULT_MARKER));
         assert!(body.contains("No prior memex nodes touched"));
     }
 
     #[test]
     fn body_includes_marker_first_line() {
-        let body = format_comment(&[], DEFAULT_MARKER);
+        let body = format_comment(&[], DEFAULT_MARKER, DEFAULT_LIMIT);
         let first_line = body.lines().next().unwrap();
         assert_eq!(first_line, DEFAULT_MARKER);
     }
@@ -216,7 +233,7 @@ mod tests {
             .open_threads
             .push("revisit logging".to_string());
 
-        let body = format_comment(&[&node], DEFAULT_MARKER);
+        let body = format_comment(&[&node], DEFAULT_MARKER, DEFAULT_LIMIT);
         assert!(body.contains("ship the feature"));
         assert!(body.contains("**Artifacts:** src/main.rs"));
         assert!(body.contains("**Decisions:**"));
@@ -230,7 +247,7 @@ mod tests {
     #[test]
     fn body_omits_empty_sections() {
         let node = make_node("bare node", vec!["src/main.rs"], 0);
-        let body = format_comment(&[&node], DEFAULT_MARKER);
+        let body = format_comment(&[&node], DEFAULT_MARKER, DEFAULT_LIMIT);
         assert!(body.contains("bare node"));
         assert!(!body.contains("**Decisions:**"));
         assert!(!body.contains("**Rejected approaches:**"));
@@ -239,7 +256,61 @@ mod tests {
 
     #[test]
     fn custom_marker_used() {
-        let body = format_comment(&[], "<!-- custom -->");
+        let body = format_comment(&[], "<!-- custom -->", DEFAULT_LIMIT);
         assert!(body.starts_with("<!-- custom -->"));
+    }
+
+    #[test]
+    fn limit_caps_rendered_nodes_and_announces_omitted_count() {
+        let nodes: Vec<ConversationNode> = (0..7)
+            .map(|i| make_node(&format!("node {}", i), vec!["src/main.rs"], i * 10))
+            .collect();
+        let refs: Vec<&ConversationNode> = nodes.iter().collect();
+
+        let body = format_comment(&refs, DEFAULT_MARKER, 3);
+        // First three by position should appear; tail should be omitted.
+        assert!(body.contains("node 0"));
+        assert!(body.contains("node 1"));
+        assert!(body.contains("node 2"));
+        assert!(!body.contains("node 3"));
+        assert!(body.contains("4 older matching nodes omitted"));
+    }
+
+    #[test]
+    fn limit_zero_renders_all_nodes() {
+        let nodes: Vec<ConversationNode> = (0..3)
+            .map(|i| make_node(&format!("node {}", i), vec!["src/main.rs"], i * 10))
+            .collect();
+        let refs: Vec<&ConversationNode> = nodes.iter().collect();
+
+        let body = format_comment(&refs, DEFAULT_MARKER, 0);
+        assert!(body.contains("node 0"));
+        assert!(body.contains("node 1"));
+        assert!(body.contains("node 2"));
+        assert!(!body.contains("omitted"));
+    }
+
+    #[test]
+    fn limit_at_or_above_match_count_omits_no_footer() {
+        let nodes: Vec<ConversationNode> = (0..3)
+            .map(|i| make_node(&format!("node {}", i), vec!["src/main.rs"], i * 10))
+            .collect();
+        let refs: Vec<&ConversationNode> = nodes.iter().collect();
+
+        let body = format_comment(&refs, DEFAULT_MARKER, 3);
+        assert!(!body.contains("omitted"));
+        let body_above = format_comment(&refs, DEFAULT_MARKER, 99);
+        assert!(!body_above.contains("omitted"));
+    }
+
+    #[test]
+    fn limit_one_uses_singular_in_footer() {
+        let nodes: Vec<ConversationNode> = (0..2)
+            .map(|i| make_node(&format!("node {}", i), vec!["src/main.rs"], i * 10))
+            .collect();
+        let refs: Vec<&ConversationNode> = nodes.iter().collect();
+
+        let body = format_comment(&refs, DEFAULT_MARKER, 1);
+        assert!(body.contains("1 older matching node omitted"));
     }
 }

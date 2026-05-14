@@ -766,6 +766,30 @@ fn pr_context_excludes_non_matching_nodes() {
 }
 
 #[test]
+fn pr_context_limit_caps_rendered_nodes() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Root");
+
+    // Create 4 child nodes that all touch src/main.rs
+    for i in 0..4 {
+        let _id = create_node(&tmp, &format!("Touch {}", i));
+        memex()
+            .current_dir(tmp.path())
+            .args(["node", "edit", "--artifact", "src/main.rs"])
+            .assert()
+            .success();
+    }
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["pr-context", "--limit", "2", "--file", "src/main.rs"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("2 older matching nodes omitted"));
+}
+
+#[test]
 fn pr_context_supports_custom_marker() {
     let tmp = TempDir::new().unwrap();
     init_in(&tmp);

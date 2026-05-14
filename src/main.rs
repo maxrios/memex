@@ -67,6 +67,10 @@ enum Commands {
         /// HTML marker comment used by callers to find/update the comment idempotently
         #[arg(long, default_value = commands::pr_context::DEFAULT_MARKER)]
         marker: String,
+
+        /// Cap on the number of nodes rendered (most recent first; 0 = unlimited)
+        #[arg(long, default_value_t = commands::pr_context::DEFAULT_LIMIT)]
+        limit: usize,
     },
 }
 
@@ -228,6 +232,10 @@ fn run(cli: Cli) -> Result<()> {
 
         Commands::Search { query } => commands::search::run(&query),
 
-        Commands::PrContext { files, marker } => commands::pr_context::run(&files, &marker),
+        Commands::PrContext {
+            files,
+            marker,
+            limit,
+        } => commands::pr_context::run(&files, &marker, limit),
     }
 }
