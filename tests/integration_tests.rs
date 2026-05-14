@@ -694,3 +694,94 @@ fn context_depth_trimming() {
         .stdout(predicate::str::contains("Level one node").not())
         .stdout(predicate::str::contains("Current node"));
 }
+
+// ─── pr-context ──────────────────────────────────────────────────────────────
+
+#[test]
+fn pr_context_emits_marker_and_no_match_message_when_empty() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Root");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["pr-context", "--file", "src/nothing.rs"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("<!-- memex-pr-context -->"))
+        .stdout(predicate::str::contains(
+            "No prior memex nodes touched the changed files.",
+        ));
+}
+
+#[test]
+fn pr_context_lists_node_with_matching_artifact() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Root");
+    let child = create_node(&tmp, "Touched main");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "edit", "--artifact", "src/main.rs"])
+        .assert()
+        .success();
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["pr-context", "--file", "src/main.rs"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(&child))
+        .stdout(predicate::str::contains("Touched main"))
+        .stdout(predicate::str::contains("**Artifacts:** src/main.rs"));
+}
+
+#[test]
+fn pr_context_excludes_non_matching_nodes() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Root");
+    let on_main = create_node(&tmp, "Touched main");
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "edit", "--artifact", "src/main.rs"])
+        .assert()
+        .success();
+
+    let on_store = create_node(&tmp, "Touched store");
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "edit", "--artifact", "src/store.rs"])
+        .assert()
+        .success();
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["pr-context", "--file", "src/main.rs"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(&on_main))
+        .stdout(predicate::str::contains(&on_store).not());
+}
+
+#[test]
+fn pr_context_supports_custom_marker() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Root");
+
+    memex()
+        .current_dir(tmp.path())
+        .args([
+            "pr-context",
+            "--marker",
+            "<!-- custom-marker -->",
+            "--file",
+            "src/main.rs",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("<!-- custom-marker -->"))
+        .stdout(predicate::str::contains("<!-- memex-pr-context -->").not());
+}
