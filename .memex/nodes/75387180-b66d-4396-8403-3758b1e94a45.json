@@ -1,0 +1,45 @@
+{
+  "id": "75387180-b66d-4396-8403-3758b1e94a45",
+  "parent_ids": [
+    "af5774e3-d353-477c-93ea-8f465e62028e"
+  ],
+  "git_ref": "feat/pr-context-action (ff9ae323)",
+  "created_at": "2026-05-14T21:48:30.682375Z",
+  "updated_at": "2026-05-14T21:59:31.289281Z",
+  "summary": {
+    "goal": "Add memex pr-context subcommand and GitHub Action that surfaces relevant memex node context as a PR comment based on changed files (closes #61)",
+    "decisions": [
+      "added pr-context as a new top-level subcommand (not under node) — it operates on the whole graph, not a single node, so the parallel structure with context/search/graph fits better than node/pr-context",
+      "exact-string artifact match in v1 — directory-prefix or fuzzy match deferred to open thread; false-positive comments are worse noise than false negatives",
+      "sorted by created_at desc so the most recent prior work shows first; reviewers care most about the latest context for each file",
+      "workflow uses actions/github-script to upsert via marker-prefix lookup; same idempotency pattern any reviewer would write by hand",
+      "build memex from source in CI rather than downloading a release binary — keeps the workflow self-contained and means the action always reflects the version of memex in the repo"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "match nodes via directory-prefix or partial path overlap in v1",
+        "reason": "Risk of low-precision matches that surface unrelated nodes; better to ship exact-match v1, observe usage, and add prefix opt-in if needed."
+      },
+      {
+        "description": "Ship a versioned reusable composite/JS Action under .github/actions/ for external consumers",
+        "reason": "Larger surface to maintain (versioning, marketplace, breaking-change story); v1 is a workflow file consumers can copy. Promote to a reusable action once the shape stabilizes."
+      }
+    ],
+    "open_threads": [
+      "Surface open_threads from ancestor nodes whose artifacts overlap, not just direct artifact matches — would catch context that lives one branch up",
+      "Add directory-prefix matching as opt-in (e.g., --match-prefix) once we see real usage and know whether the noise is acceptable",
+      "Cap output length when many nodes match (currently unbounded; could blow past GH comment size on large PRs)",
+      "Extract to a versioned reusable Action under .github/actions/memex-pr-context/ once the format is stable enough to commit to"
+    ],
+    "key_artifacts": [
+      "src/commands/pr_context.rs",
+      "src/commands/mod.rs",
+      "src/main.rs",
+      "tests/integration_tests.rs",
+      ".github/workflows/memex-pr-context.yml"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

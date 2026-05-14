@@ -57,6 +57,21 @@ enum Commands {
         /// Query string to search for
         query: String,
     },
+
+    /// Render a PR-comment payload listing memex nodes whose key_artifacts match the given files
+    PrContext {
+        /// Changed files (repo-relative paths). Repeatable.
+        #[arg(long = "file", num_args = 1, action = clap::ArgAction::Append)]
+        files: Vec<String>,
+
+        /// HTML marker comment used by callers to find/update the comment idempotently
+        #[arg(long, default_value = commands::pr_context::DEFAULT_MARKER)]
+        marker: String,
+
+        /// Cap on the number of nodes rendered (most recent first; 0 = unlimited)
+        #[arg(long, default_value_t = commands::pr_context::DEFAULT_LIMIT)]
+        limit: usize,
+    },
 }
 
 #[derive(Subcommand)]
@@ -216,5 +231,11 @@ fn run(cli: Cli) -> Result<()> {
         }
 
         Commands::Search { query } => commands::search::run(&query),
+
+        Commands::PrContext {
+            files,
+            marker,
+            limit,
+        } => commands::pr_context::run(&files, &marker, limit),
     }
 }

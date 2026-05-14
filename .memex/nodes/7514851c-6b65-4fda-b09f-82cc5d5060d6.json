@@ -1,0 +1,37 @@
+{
+  "id": "7514851c-6b65-4fda-b09f-82cc5d5060d6",
+  "parent_ids": [
+    "75387180-b66d-4396-8403-3758b1e94a45"
+  ],
+  "git_ref": "feat/pr-context-action (17ef31aa)",
+  "created_at": "2026-05-14T22:12:29.388620Z",
+  "updated_at": "2026-05-14T22:14:44.192519Z",
+  "summary": {
+    "goal": "Cap pr-context output to N most recent matches (default 5) and fix clippy unnecessary_sort_by lint",
+    "decisions": [
+      "default limit = 5 — keeps comment under ~5KB on hot files while preserving the most recent context (which is what reviewers care about); 0 = unlimited for power users",
+      "fixed clippy unnecessary_sort_by by switching matches.sort_by(|a,b| b.cmp(&a)) to matches.sort_by_key(|n| std::cmp::Reverse(n.created_at)) — older toolchain locally did not flag this; only Linux/Windows runners with newer Rust did",
+      "renders cap as a footer with omitted count rather than truncating silently — preserves the user's ability to know there's more by passing --limit 0"
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Truncate per-node fields (e.g., first 3 decisions only) in addition to capping node count",
+        "reason": "Adds a second axis of complexity (per-node truncation rules) for marginal size win. Capping node count is the simpler v1 lever; per-node trim can be added later if real PRs still produce oversized comments."
+      },
+      {
+        "description": "Pick limit=3 as the default",
+        "reason": "5 keeps room for the realistic case of a node touching ~3-4 files where each file has its own most-recent-touch node. 3 felt aggressive; default can be lowered if usage shows otherwise."
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      "src/commands/pr_context.rs",
+      "src/main.rs",
+      "tests/integration_tests.rs",
+      "README.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
