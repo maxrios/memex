@@ -151,6 +151,7 @@ Render a markdown payload listing every node whose `key_artifacts` exact-match o
 |---|---|
 | `--file <path>` | Repo-relative path to consider. Repeatable. |
 | `--marker <html>` | HTML marker comment used by automation to find and update an existing comment idempotently. Defaults to `<!-- memex-pr-context -->`. |
+| `--limit <N>` | Cap on the number of nodes rendered (most recent first). Default `5`. Pass `0` for no cap. When the cap triggers, a one-line footer reports how many older matches were omitted. |
 
 Output is written to stdout. The first line is always the marker, so callers can locate prior comments without re-parsing the body.
 
