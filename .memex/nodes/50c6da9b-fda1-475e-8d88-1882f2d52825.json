@@ -5,12 +5,15 @@
   ],
   "git_ref": "docs/readme-adr-lede (d9c91615)",
   "created_at": "2026-05-22T03:58:55.177797Z",
-  "updated_at": "2026-05-22T04:04:28.237086Z",
+  "updated_at": "2026-05-22T04:42:27.682837Z",
   "summary": {
     "goal": "Reframe README lede around the ADR comparison so new readers anchor on a known mental model. Highlight differentiators: task granularity, agent-authored, graph-of-context, captures rejected approaches. Keep Quick Start and Commands sections untouched. Closes #62.",
     "decisions": [
       "Lede is one bolded tagline plus one descriptive paragraph — keeps the four differentiators visible above the fold without splitting into bullets that would push the AI-assisted notice further down.",
-      "Removed the prior 'Conversations are ephemeral and flat, but real development is hierarchical and branching' paragraph — once the ADR framing is in place, that paragraph restates the same idea less concretely."
+      "Removed the prior 'Conversations are ephemeral and flat, but real development is hierarchical and branching' paragraph — once the ADR framing is in place, that paragraph restates the same idea less concretely.",
+      "Replaced the bolded 'Think ADRs, but...' tagline with a declarative definition opener. The tagline read as marketing copy; the declarative sentence sets a more formal register while still naming ADRs in the first clause.",
+      "Removed every em dash from the README. Style choice for a more formal voice; substitutions used colons (Workflow bullets, lede appositive) and semicolons (sentence joins) depending on the grammatical role each dash was filling.",
+      "Rewrote the AI-assisted contribution notice and dropped the siren emoji while preserving both halves of the original intent: candid disclosure that the project is itself AI-developed, plus an explicit welcome for contributors using any working style. The workflow expectation moves to the second sentence rather than being tacked on with 'but please'."
     ],
     "rejected_approaches": [
       {
@@ -20,6 +23,18 @@
       {
         "description": "Keep the 'Conversations are ephemeral and flat...' paragraph as a second framing pass",
         "reason": "It duplicates the ADR-comparison framing now and pushes the Installation header further from the top. The issue only mentions the lede, but leaving stale framing in place defeats the point of the reframe."
+      },
+      {
+        "description": "Limit the formal-tone pass to the lede and contribution notice only, leaving Commands and Workflow untouched per issue #62's 'untouched' constraint",
+        "reason": "Issue #62's scope guard was against restructuring, not against incidental punctuation polish. Leaving em dashes in Workflow and Commands after rewriting the lede would have produced visible style drift within the same document; the user explicitly opted into a single consistent pass."
+      },
+      {
+        "description": "Convert Workflow bullets from 'Label dash text' to 'Label. Text.' (drop the punctuator entirely)",
+        "reason": "The em-dash-to-colon swap preserves the existing list rhythm where each item is a labeled action; dropping the punctuator forces full sentences that read heavier in a six-item list. Colon keeps the scannability."
+      },
+      {
+        "description": "First-pass rewrite of the contribution notice that collapsed it to a factual two-sentence statement about AI assistance and review",
+        "reason": "Lost the original intent. The user had added that section specifically to (a) disclose how the project is built and (b) invite contributors to work in their own style. The factual-only version preserved (a) but stripped (b)."
       }
     ],
     "open_threads": [],

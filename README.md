@@ -1,10 +1,10 @@
 # memex
 
-**Think Architecture Decision Records, but per task and authored by the AI agent doing the work.**
+memex is a CLI tool that records the reasoning behind AI-assisted development as a versioned graph of decision nodes, modeled on Architecture Decision Records (ADRs).
 
-Like ADRs, memex captures the *why* behind a change — the decision, the alternative that was rejected, the thread left open — not just the *what* in the diff. Unlike ADRs, every unit of work gets a node, not only the big architectural calls, and the nodes form a DAG so future work inherits context from its ancestor chain instead of starting cold. Nodes are designed to be drafted by the agent doing the work, with the human reviewing.
+Like an ADR, each node captures the *why* behind a change: the decision made, the alternative rejected, and the questions left open. Unlike an ADR, memex operates at the granularity of a single unit of work rather than only major architectural choices, and nodes form a directed graph so that each new piece of work inherits the context of its ancestor chain. Nodes are designed to be drafted by the agent performing the work and reviewed by a human.
 
-🚨 memex's development is AI-assisted. Each PR is thoroughly reviewed and should maintain development best practices. Developers are encouraged to contribute in their preferred way, but please follow the development workflow detailed in [AGENTS.md](https://github.com/maxrios/memex/blob/main/AGENTS.md).
+memex is itself developed with AI assistance, and contributions in any working style are welcome, with or without AI tooling. Every pull request is reviewed for correctness and is expected to follow the development workflow documented in [AGENTS.md](https://github.com/maxrios/memex/blob/main/AGENTS.md).
 
 ---
 
@@ -125,7 +125,7 @@ The payload is a JSON object; every field is optional, so an agent can send only
 }
 ```
 
-Re-running the same payload is a no-op. Free-text entries dedupe on normalized text (trim, collapse whitespace, lowercase, strip trailing `.!?`); artifacts dedupe on exact path. `goal` is **not** part of the payload — scope changes go through explicit `memex node edit --goal`.
+Re-running the same payload is a no-op. Free-text entries dedupe on normalized text (trim, collapse whitespace, lowercase, strip trailing `.!?`); artifacts dedupe on exact path. `goal` is **not** part of the payload; scope changes go through explicit `memex node edit --goal`.
 
 ```bash
 # Preview (default):
@@ -206,16 +206,16 @@ Pull request titles containing `[skip memex]` skip the comment.
 
 The pattern for using `memex` alongside any project:
 
-1. **Branch** — `git checkout -b <type>/<name>`
-2. **Create a node** — `memex node create --parent <parent-id> --goal "what you're working on"`
-3. **Implement** — as you work, record decisions and artifacts incrementally:
+1. **Branch:** `git checkout -b <type>/<name>`
+2. **Create a node:** `memex node create --parent <parent-id> --goal "what you're working on"`
+3. **Implement.** As you work, record decisions and artifacts incrementally:
    ```
    memex node edit --decision "Chose X over Y because ..."
    memex node edit --artifact "src/new_module.rs"
    ```
-4. **Resolve** — `memex node resolve` when the work is complete
-5. **Commit** — stage source changes and `.memex/` files together
-6. **Next session** — `memex context` generates a formatted ancestor summary to paste into a new conversation, so future sessions pick up where the last left off
+4. **Resolve:** run `memex node resolve` when the work is complete.
+5. **Commit:** stage source changes and `.memex/` files together.
+6. **Next session:** `memex context` generates a formatted ancestor summary to paste into a new conversation, so future sessions pick up where the last left off.
 
 ---
 
@@ -243,7 +243,7 @@ key_artifacts = [
 ]
 ```
 
-You can also build this incrementally using the additive flags on `memex node edit` — see [Commands](#memex-node-edit-id) above.
+You can also build this incrementally using the additive flags on `memex node edit`; see [Commands](#memex-node-edit-id) above.
 
 ---
 
