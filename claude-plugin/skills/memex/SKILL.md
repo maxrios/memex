@@ -73,6 +73,33 @@ Use `--summary` only for a full bulk replacement (e.g. bootstrapping from a plan
 
 `--rejected` and `--open-thread` are the under-used fields. Using them is the difference between a node that captures *why* the work landed this way and one that only captures *what* shipped.
 
+### After a meaningful turn: batch updates with `node auto`
+
+After any turn that produced a real decision, ruled out an alternative, or surfaced a follow-up — i.e. you'd otherwise be running 2+ `node edit` flags in a row — draft a JSON payload and show the human the dry-run diff first:
+
+```bash
+cat <<'EOF' | memex node auto --from-stdin
+{
+  "decisions": ["chose X over Y because Z"],
+  "rejected_approaches": [
+    {"description": "alternative you considered", "reason": "why it didn't win"}
+  ],
+  "open_threads": ["question to revisit"],
+  "key_artifacts": ["path/to/key/file"]
+}
+EOF
+```
+
+The dry-run is the default and writes nothing. After the human confirms, re-run with `--apply`. Re-running an identical payload is a no-op (normalized-text dedupe), so it's safe to retry.
+
+Constraints for the payload itself:
+
+- Keep entries short and concrete — one specific decision per entry, not paragraphs. If you can't summarize the *why* in one sentence, the decision probably isn't crystallized yet.
+- For every decision, explicitly consider what alternative you didn't take. Empty `rejected_approaches` is a signal you skipped the question, not that there was no alternative.
+- Don't include `goal` — scope changes go through explicit `memex node edit --goal "..."`, not silent side effects.
+
+Use single `memex node edit --decision/...` calls when there's only one thing to record. Use `node auto` when there are several and you want a single review gate.
+
 ## Finishing
 
 1. Run the project's verification commands (lint, format, tests). All must pass before resolving.
