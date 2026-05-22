@@ -1,0 +1,24 @@
+{
+  "id": "03a1d310-33e0-46a6-8138-35d247a8b494",
+  "parent_ids": [
+    "50c6da9b-fda1-475e-8d88-1882f2d52825"
+  ],
+  "git_ref": "release/v0.2.0 (a2fe32f0)",
+  "created_at": "2026-05-22T05:24:33.275709Z",
+  "updated_at": "2026-05-22T05:26:21.274733Z",
+  "summary": {
+    "goal": "Release v0.2.0",
+    "decisions": [],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "Cargo.toml",
+      "CHANGELOG.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [
+    "release"
+  ],
+  "status": "Resolved"
+}
