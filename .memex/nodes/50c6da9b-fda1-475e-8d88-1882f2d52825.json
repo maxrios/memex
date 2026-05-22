@@ -1,0 +1,33 @@
+{
+  "id": "50c6da9b-fda1-475e-8d88-1882f2d52825",
+  "parent_ids": [
+    "ac428336-89fe-4bbe-9201-93eb79151a9a"
+  ],
+  "git_ref": "docs/readme-adr-lede (d9c91615)",
+  "created_at": "2026-05-22T03:58:55.177797Z",
+  "updated_at": "2026-05-22T04:04:28.237086Z",
+  "summary": {
+    "goal": "Reframe README lede around the ADR comparison so new readers anchor on a known mental model. Highlight differentiators: task granularity, agent-authored, graph-of-context, captures rejected approaches. Keep Quick Start and Commands sections untouched. Closes #62.",
+    "decisions": [
+      "Lede is one bolded tagline plus one descriptive paragraph — keeps the four differentiators visible above the fold without splitting into bullets that would push the AI-assisted notice further down.",
+      "Removed the prior 'Conversations are ephemeral and flat, but real development is hierarchical and branching' paragraph — once the ADR framing is in place, that paragraph restates the same idea less concretely."
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Render the four differentiators as a bullet list mirroring the issue's 'What to change' list",
+        "reason": "A bullet list reads as a feature spec; the lede should be the one-sentence hook a skimmer can read. The prose paragraph covers all four points (task granularity, agent-authored, DAG ancestor chain, rejected approaches) in tighter form."
+      },
+      {
+        "description": "Keep the 'Conversations are ephemeral and flat...' paragraph as a second framing pass",
+        "reason": "It duplicates the ADR-comparison framing now and pushes the Installation header further from the top. The issue only mentions the lede, but leaving stale framing in place defeats the point of the reframe."
+      }
+    ],
+    "open_threads": [],
+    "key_artifacts": [
+      "README.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

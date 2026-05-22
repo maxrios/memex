@@ -1,8 +1,8 @@
 # memex
 
-A CLI tool for organizing AI-assisted development work into a versioned, navigable DAG of conversation nodes tied to a software project.
+**Think Architecture Decision Records, but per task and authored by the AI agent doing the work.**
 
-Conversations are ephemeral and flat, but real development is hierarchical and branching. memex gives each phase of work a structured node capturing what was built, what was decided, what was rejected, and what remains open. Edges represent context inheritance: each child node was started with knowledge of its parent.
+Like ADRs, memex captures the *why* behind a change — the decision, the alternative that was rejected, the thread left open — not just the *what* in the diff. Unlike ADRs, every unit of work gets a node, not only the big architectural calls, and the nodes form a DAG so future work inherits context from its ancestor chain instead of starting cold. Nodes are designed to be drafted by the agent doing the work, with the human reviewing.
 
 🚨 memex's development is AI-assisted. Each PR is thoroughly reviewed and should maintain development best practices. Developers are encouraged to contribute in their preferred way, but please follow the development workflow detailed in [AGENTS.md](https://github.com/maxrios/memex/blob/main/AGENTS.md).
 
