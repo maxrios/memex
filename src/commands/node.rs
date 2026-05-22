@@ -1,11 +1,12 @@
-use std::io::{self, IsTerminal, Write};
+use std::collections::HashSet;
+use std::io::{self, IsTerminal, Read, Write};
 
 use anyhow::{bail, Context, Result};
 use chrono::Utc;
 
 use crate::editor;
 use crate::git;
-use crate::models::{ConversationNode, NodeStatus, NodeSummary};
+use crate::models::{ConversationNode, NodeAutoPayload, NodeStatus, NodeSummary, RejectedApproach};
 use crate::store::GraphStore;
 
 pub fn create(
@@ -119,6 +120,291 @@ pub fn edit(
 
     println!("Node {} updated.", node.short_id());
     Ok(())
+}
+
+/// Append draft node additions from a JSON payload on stdin.
+///
+/// `--dry-run` (default) prints a diff against the target node without
+/// writing. `--apply` merges the additions into the node summary, using
+/// normalized-text dedupe so re-running the same payload is a no-op.
+///
+/// The payload must be a JSON object; all fields are optional:
+///
+/// ```json
+/// {
+///   "decisions": ["..."],
+///   "rejected_approaches": [{"description": "...", "reason": "..."}],
+///   "open_threads": ["..."],
+///   "key_artifacts": ["..."]
+/// }
+/// ```
+pub fn auto(id: Option<&str>, from_stdin: bool, apply: bool) -> Result<()> {
+    if !from_stdin {
+        bail!(
+            "--from-stdin is required: pipe a JSON payload on stdin (see `memex node auto --help`)"
+        );
+    }
+
+    let mut payload_str = String::new();
+    io::stdin()
+        .read_to_string(&mut payload_str)
+        .context("Failed to read payload from stdin")?;
+
+    if payload_str.trim().is_empty() {
+        bail!("Empty payload on stdin (expected a JSON object)");
+    }
+
+    let payload: NodeAutoPayload =
+        serde_json::from_str(&payload_str).context("Failed to parse JSON payload")?;
+
+    let store = GraphStore::open_from_cwd()?;
+    let node_id = store.resolve_node_id(id)?;
+    let mut node = store.load_node(node_id)?;
+
+    let plan = compute_auto_plan(&node.summary, &payload);
+
+    if !apply {
+        print_auto_diff(&node, &plan);
+        return Ok(());
+    }
+
+    if !plan.has_changes() {
+        println!(
+            "✓ No changes — all entries already present on node {}.",
+            node.short_id()
+        );
+        return Ok(());
+    }
+
+    let counts = plan.counts();
+    node.summary.decisions.extend(plan.new_decisions);
+    node.summary
+        .rejected_approaches
+        .extend(plan.new_rejected.into_iter().map(|r| RejectedApproach {
+            description: r.description,
+            reason: r.reason,
+        }));
+    node.summary.open_threads.extend(plan.new_open_threads);
+    node.summary.key_artifacts.extend(plan.new_artifacts);
+    node.updated_at = Utc::now();
+    store.save_node(&node)?;
+
+    println!(
+        "✓ Applied {} decision(s), {} rejected approach(es), {} open thread(s), {} artifact(s) to node {}.",
+        counts.decisions, counts.rejected, counts.open_threads, counts.artifacts,
+        node.short_id()
+    );
+    Ok(())
+}
+
+/// Result of comparing a payload against an existing node summary: what
+/// would be added on `--apply`, and what was skipped as a duplicate.
+struct AutoPlan {
+    new_decisions: Vec<String>,
+    skipped_decisions: Vec<String>,
+    new_rejected: Vec<crate::models::RejectedApproachPayload>,
+    skipped_rejected: Vec<String>,
+    new_open_threads: Vec<String>,
+    skipped_open_threads: Vec<String>,
+    new_artifacts: Vec<String>,
+    skipped_artifacts: Vec<String>,
+}
+
+struct AutoCounts {
+    decisions: usize,
+    rejected: usize,
+    open_threads: usize,
+    artifacts: usize,
+}
+
+impl AutoPlan {
+    fn has_changes(&self) -> bool {
+        !self.new_decisions.is_empty()
+            || !self.new_rejected.is_empty()
+            || !self.new_open_threads.is_empty()
+            || !self.new_artifacts.is_empty()
+    }
+
+    fn has_skips(&self) -> bool {
+        !self.skipped_decisions.is_empty()
+            || !self.skipped_rejected.is_empty()
+            || !self.skipped_open_threads.is_empty()
+            || !self.skipped_artifacts.is_empty()
+    }
+
+    fn counts(&self) -> AutoCounts {
+        AutoCounts {
+            decisions: self.new_decisions.len(),
+            rejected: self.new_rejected.len(),
+            open_threads: self.new_open_threads.len(),
+            artifacts: self.new_artifacts.len(),
+        }
+    }
+}
+
+/// Normalize free-text entries for dedupe: trim, collapse internal
+/// whitespace, lowercase, strip trailing punctuation. This catches the
+/// common cases (re-run with the same payload, agent re-emitting with a
+/// trailing period) without crossing into fuzzy matching.
+fn normalize_text(s: &str) -> String {
+    let collapsed: String = s.split_whitespace().collect::<Vec<_>>().join(" ");
+    let lower = collapsed.to_lowercase();
+    lower.trim_end_matches(['.', '!', '?']).to_string()
+}
+
+fn compute_auto_plan(summary: &NodeSummary, payload: &NodeAutoPayload) -> AutoPlan {
+    // Text fields: normalized-text dedupe.
+    let mut decision_keys: HashSet<String> = summary
+        .decisions
+        .iter()
+        .map(|d| normalize_text(d))
+        .collect();
+    let mut new_decisions = Vec::new();
+    let mut skipped_decisions = Vec::new();
+    for d in &payload.decisions {
+        let key = normalize_text(d);
+        if key.is_empty() {
+            // Drop empties silently — agents occasionally emit blanks.
+            continue;
+        }
+        if decision_keys.insert(key) {
+            new_decisions.push(d.trim().to_string());
+        } else {
+            skipped_decisions.push(d.trim().to_string());
+        }
+    }
+
+    // Rejected approaches: dedupe on normalized description only;
+    // reasons are usually longer and less stable across re-emits.
+    let mut rejected_keys: HashSet<String> = summary
+        .rejected_approaches
+        .iter()
+        .map(|r| normalize_text(&r.description))
+        .collect();
+    let mut new_rejected = Vec::new();
+    let mut skipped_rejected = Vec::new();
+    for r in &payload.rejected_approaches {
+        let key = normalize_text(&r.description);
+        if key.is_empty() {
+            continue;
+        }
+        if rejected_keys.insert(key) {
+            new_rejected.push(crate::models::RejectedApproachPayload {
+                description: r.description.trim().to_string(),
+                reason: r.reason.trim().to_string(),
+            });
+        } else {
+            skipped_rejected.push(r.description.trim().to_string());
+        }
+    }
+
+    let mut thread_keys: HashSet<String> = summary
+        .open_threads
+        .iter()
+        .map(|t| normalize_text(t))
+        .collect();
+    let mut new_open_threads = Vec::new();
+    let mut skipped_open_threads = Vec::new();
+    for t in &payload.open_threads {
+        let key = normalize_text(t);
+        if key.is_empty() {
+            continue;
+        }
+        if thread_keys.insert(key) {
+            new_open_threads.push(t.trim().to_string());
+        } else {
+            skipped_open_threads.push(t.trim().to_string());
+        }
+    }
+
+    // Artifacts: exact-path dedupe (paths are case-sensitive on most
+    // filesystems and shouldn't have punctuation normalized away).
+    let mut artifact_keys: HashSet<String> = summary.key_artifacts.iter().cloned().collect();
+    let mut new_artifacts = Vec::new();
+    let mut skipped_artifacts = Vec::new();
+    for a in &payload.key_artifacts {
+        let trimmed = a.trim().to_string();
+        if trimmed.is_empty() {
+            continue;
+        }
+        if artifact_keys.insert(trimmed.clone()) {
+            new_artifacts.push(trimmed);
+        } else {
+            skipped_artifacts.push(trimmed);
+        }
+    }
+
+    AutoPlan {
+        new_decisions,
+        skipped_decisions,
+        new_rejected,
+        skipped_rejected,
+        new_open_threads,
+        skipped_open_threads,
+        new_artifacts,
+        skipped_artifacts,
+    }
+}
+
+fn print_auto_diff(node: &ConversationNode, plan: &AutoPlan) {
+    let goal_preview: String = node.summary.goal.chars().take(60).collect();
+    let goal_preview = if node.summary.goal.len() > 60 {
+        format!("{}…", goal_preview)
+    } else {
+        goal_preview
+    };
+    println!("Node: {} ({})", node.short_id(), goal_preview);
+    println!();
+
+    if !plan.has_changes() {
+        println!("No changes — all entries already present.");
+        return;
+    }
+
+    if !plan.new_decisions.is_empty() {
+        println!("+ Decisions:");
+        for d in &plan.new_decisions {
+            println!("+   • {}", d);
+        }
+    }
+    if !plan.new_rejected.is_empty() {
+        println!("+ Rejected Approaches:");
+        for r in &plan.new_rejected {
+            println!("+   ✗ {} — {}", r.description, r.reason);
+        }
+    }
+    if !plan.new_open_threads.is_empty() {
+        println!("+ Open Threads:");
+        for t in &plan.new_open_threads {
+            println!("+   ? {}", t);
+        }
+    }
+    if !plan.new_artifacts.is_empty() {
+        println!("+ Key Artifacts:");
+        for a in &plan.new_artifacts {
+            println!("+   ◆ {}", a);
+        }
+    }
+
+    if plan.has_skips() {
+        println!();
+        println!("Skipped (already present):");
+        for d in &plan.skipped_decisions {
+            println!("  • {}", d);
+        }
+        for r in &plan.skipped_rejected {
+            println!("  ✗ {}", r);
+        }
+        for t in &plan.skipped_open_threads {
+            println!("  ? {}", t);
+        }
+        for a in &plan.skipped_artifacts {
+            println!("  ◆ {}", a);
+        }
+    }
+
+    println!();
+    println!("Run with --apply to write these changes.");
 }
 
 pub fn show(id: Option<&str>) -> Result<()> {

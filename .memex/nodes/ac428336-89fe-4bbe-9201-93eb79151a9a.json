@@ -1,0 +1,47 @@
+{
+  "id": "ac428336-89fe-4bbe-9201-93eb79151a9a",
+  "parent_ids": [
+    "8403a5cb-721b-4c62-b019-2d02ecff7c82"
+  ],
+  "git_ref": "feat/node-auto (406ba54f)",
+  "created_at": "2026-05-22T03:04:16.356229Z",
+  "updated_at": "2026-05-22T03:10:26.776496Z",
+  "summary": {
+    "goal": "Add 'memex node auto' subcommand: read a JSON payload of draft node additions, support --dry-run (default, prints a diff) and --apply (merge with dedupe-on-normalized-text). Closes #60.",
+    "decisions": [
+      "JSON payload format (not TOML) — issue example uses JSON and agents emit JSON natively. The existing --rejected TOML path on 'node edit' remains for humans typing on the CLI.",
+      "Goal deliberately omitted from payload — scope changes belong in explicit 'node edit --goal', not silent side effects of an agent turn.",
+      "Normalize for dedupe = trim + collapse whitespace + lowercase + strip trailing .!? — handles common re-emit drift (whitespace, casing, trailing period) without crossing into fuzzy matching.",
+      "Artifacts dedupe on exact path (no normalization) — paths are case-sensitive on most filesystems and trailing-punctuation stripping is wrong for them.",
+      "Dry-run is the default action; --apply writes without a TTY confirmation. The dry-run-default gate IS the safety net — avoids a three-flag combo (--dry-run / --apply / --force).",
+      "Required --from-stdin (no implicit stdin read) — leaves room for a future --payload-file flag without ambiguity about where input comes from."
+    ],
+    "rejected_approaches": [
+      {
+        "description": "TTY confirmation on --apply (consistent with resolve / abandon)",
+        "reason": "Open question from the issue. Resolved against: would require a third flag (--force) for a write operation, when --dry-run-default already provides the confirmation gate. Two flags is cleaner than three."
+      },
+      {
+        "description": "Fuzzy dedupe (Levenshtein/similarity threshold)",
+        "reason": "Listed as an option in the issue. Explicit non-goal for v1 — too easy to silently merge entries that look similar but mean different things. Punt to a follow-up if exact+normalized proves insufficient in practice."
+      },
+      {
+        "description": "Including goal in the JSON payload",
+        "reason": "Goal changes are scope shifts, not append-only context. Mixing them into an idempotent batch undermines the dry-run trust model. The agent can still run node edit --goal explicitly when scope actually changes."
+      }
+    ],
+    "open_threads": [
+      "Skill update needs a concrete prompt that constrains length and asks the agent to surface rejected alternatives explicitly — issue mentions this; will land in the docs commit.",
+      "Should the apply summary line collapse the four counters when several are zero? e.g. 'Applied 1 decision' instead of 'Applied 1 decision(s), 0 rejected approach(es), 0 open thread(s), 0 artifact(s)'. Current output is uniform but verbose."
+    ],
+    "key_artifacts": [
+      "src/commands/node.rs",
+      "src/main.rs",
+      "src/models.rs",
+      "tests/integration_tests.rs"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Active"
+}

@@ -125,6 +125,24 @@ enum NodeCommands {
         rejected: Vec<String>,
     },
 
+    /// Apply agent-authored draft additions from a JSON payload on stdin
+    Auto {
+        /// Node ID (defaults to active node)
+        id: Option<String>,
+
+        /// Read the JSON payload from stdin (required)
+        #[arg(long = "from-stdin")]
+        from_stdin: bool,
+
+        /// Write the merged additions to the node (mutually exclusive with --dry-run)
+        #[arg(long, conflicts_with = "dry_run")]
+        apply: bool,
+
+        /// Print the diff against the active node without writing (default)
+        #[arg(long = "dry-run", conflicts_with = "apply")]
+        dry_run: bool,
+    },
+
     /// Show a node's full summary
     Show {
         /// Node ID (defaults to active node)
@@ -208,6 +226,12 @@ fn run(cli: Cli) -> Result<()> {
                 &open_thread,
                 &rejected,
             ),
+            NodeCommands::Auto {
+                id,
+                from_stdin,
+                apply,
+                dry_run: _,
+            } => commands::node::auto(id.as_deref(), from_stdin, apply),
             NodeCommands::Show { id } => commands::node::show(id.as_deref()),
             NodeCommands::List => commands::node::list(),
             NodeCommands::Resolve { id, force } => {
