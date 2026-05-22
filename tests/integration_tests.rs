@@ -298,6 +298,235 @@ fn node_edit_empty_goal_fails() {
         .stderr(predicate::str::contains("cannot be empty").or(predicate::str::contains("empty")));
 }
 
+// ─── Node auto ───────────────────────────────────────────────────────────────
+
+#[test]
+fn node_auto_dry_run_prints_diff_without_writing() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Auto-target");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto", "--from-stdin"])
+        .write_stdin(
+            r#"{"decisions":["Use SQLite"],"open_threads":["audit fts5"],"key_artifacts":["src/db.rs"]}"#,
+        )
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("+ Decisions:"))
+        .stdout(predicate::str::contains("Use SQLite"))
+        .stdout(predicate::str::contains("audit fts5"))
+        .stdout(predicate::str::contains("src/db.rs"))
+        .stdout(predicate::str::contains("Run with --apply"));
+
+    // Verify nothing was written: the show output should not contain the
+    // dry-run additions.
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "show"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Use SQLite").not())
+        .stdout(predicate::str::contains("audit fts5").not());
+}
+
+#[test]
+fn node_auto_apply_writes_all_fields() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Auto-apply");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto", "--from-stdin", "--apply"])
+        .write_stdin(
+            r#"{
+              "decisions":["Use SQLite"],
+              "rejected_approaches":[{"description":"Postgres","reason":"Too heavyweight"}],
+              "open_threads":["audit fts5"],
+              "key_artifacts":["src/db.rs"]
+            }"#,
+        )
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Applied 1 decision"));
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "show"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Use SQLite"))
+        .stdout(predicate::str::contains("Postgres — Too heavyweight"))
+        .stdout(predicate::str::contains("audit fts5"))
+        .stdout(predicate::str::contains("src/db.rs"));
+}
+
+#[test]
+fn node_auto_apply_is_idempotent() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Idempotent");
+
+    let payload = r#"{"decisions":["Use SQLite"],"key_artifacts":["src/db.rs"]}"#;
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto", "--from-stdin", "--apply"])
+        .write_stdin(payload)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Applied"));
+
+    // Second apply with identical payload: no-op.
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto", "--from-stdin", "--apply"])
+        .write_stdin(payload)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("No changes"));
+}
+
+#[test]
+fn node_auto_dedupes_on_normalized_text() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Dedupe");
+
+    // First write the canonical form.
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto", "--from-stdin", "--apply"])
+        .write_stdin(r#"{"decisions":["Use SQLite for storage"]}"#)
+        .assert()
+        .success();
+
+    // Re-emit with extra whitespace, different case, and a trailing
+    // period. Normalized dedupe should treat it as a duplicate.
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto", "--from-stdin", "--apply"])
+        .write_stdin(r#"{"decisions":["  use   sqlite for storage. "]}"#)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("No changes"));
+}
+
+#[test]
+fn node_auto_requires_from_stdin() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Needs-flag");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("--from-stdin is required"));
+}
+
+#[test]
+fn node_auto_empty_payload_errors() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Empty");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto", "--from-stdin"])
+        .write_stdin("")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Empty payload"));
+}
+
+#[test]
+fn node_auto_invalid_json_errors() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Bad-json");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto", "--from-stdin"])
+        .write_stdin("not json")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Failed to parse JSON"));
+}
+
+#[test]
+fn node_auto_apply_and_dry_run_are_exclusive() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Conflict");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto", "--from-stdin", "--apply", "--dry-run"])
+        .write_stdin("{}")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("cannot be used with"));
+}
+
+#[test]
+fn node_auto_targets_explicit_id() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    let target = create_node(&tmp, "Target");
+    // Make a second node active so the auto must use the explicit id arg.
+    create_node(&tmp, "Different active");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto", &target, "--from-stdin", "--apply"])
+        .write_stdin(r#"{"decisions":["Routed to target"]}"#)
+        .assert()
+        .success();
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "show", &target])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Routed to target"));
+}
+
+#[test]
+fn node_auto_no_active_node_errors() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    // No node create → init left active pointing at the root, so call auto
+    // against a node id we know does not exist.
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto", "deadbeef", "--from-stdin"])
+        .write_stdin(r#"{"decisions":["x"]}"#)
+        .assert()
+        .failure();
+}
+
+#[test]
+fn node_auto_partial_payload_only_new_section() {
+    let tmp = TempDir::new().unwrap();
+    init_in(&tmp);
+    create_node(&tmp, "Partial");
+
+    memex()
+        .current_dir(tmp.path())
+        .args(["node", "auto", "--from-stdin"])
+        .write_stdin(r#"{"open_threads":["follow up later"]}"#)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("+ Open Threads:"))
+        .stdout(predicate::str::contains("+ Decisions:").not())
+        .stdout(predicate::str::contains("+ Rejected Approaches:").not())
+        .stdout(predicate::str::contains("+ Key Artifacts:").not());
+}
+
 // ─── Node status ─────────────────────────────────────────────────────────────
 
 #[test]

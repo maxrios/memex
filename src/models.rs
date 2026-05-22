@@ -142,6 +142,28 @@ impl From<NodeSummaryToml> for NodeSummary {
     }
 }
 
+/// JSON payload accepted by `memex node auto` — every field is optional so
+/// agents can emit only what they have for a given turn. `goal` is
+/// deliberately omitted; scope changes should go through explicit
+/// `node edit --goal`.
+#[derive(Debug, Default, Deserialize)]
+pub struct NodeAutoPayload {
+    #[serde(default)]
+    pub decisions: Vec<String>,
+    #[serde(default)]
+    pub rejected_approaches: Vec<RejectedApproachPayload>,
+    #[serde(default)]
+    pub open_threads: Vec<String>,
+    #[serde(default)]
+    pub key_artifacts: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RejectedApproachPayload {
+    pub description: String,
+    pub reason: String,
+}
+
 /// Config file structure
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Config {

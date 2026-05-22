@@ -102,6 +102,39 @@ The `--rejected` flag expects inline TOML with `description` and `reason` fields
 memex node edit --rejected $'description = "Alternative approach"\nreason = "Why it was rejected"'
 ```
 
+### `memex node auto [id]`
+
+Apply agent-authored draft additions from a JSON payload on stdin. Designed for the case where an LLM agent has the conversation transcript and can draft node updates for the human to review, so curation becomes a side effect of doing the work rather than a separate task.
+
+| Flag | Effect |
+|---|---|
+| `--from-stdin` | Required. Read the JSON payload from stdin. |
+| `--dry-run` | Print the diff against the target node without writing (default). |
+| `--apply` | Write the merged additions to the node. Mutually exclusive with `--dry-run`. |
+
+The payload is a JSON object; every field is optional, so an agent can send only what it has for a given turn:
+
+```json
+{
+  "decisions": ["Use SQLite for v2 storage"],
+  "rejected_approaches": [
+    {"description": "Postgres", "reason": "Too heavyweight for a single-user CLI"}
+  ],
+  "open_threads": ["Audit fts5 stability"],
+  "key_artifacts": ["src/db.rs"]
+}
+```
+
+Re-running the same payload is a no-op. Free-text entries dedupe on normalized text (trim, collapse whitespace, lowercase, strip trailing `.!?`); artifacts dedupe on exact path. `goal` is **not** part of the payload — scope changes go through explicit `memex node edit --goal`.
+
+```bash
+# Preview (default):
+cat payload.json | memex node auto --from-stdin
+
+# Write:
+cat payload.json | memex node auto --from-stdin --apply
+```
+
 ### `memex node show [id]`
 
 Display a node's full summary.
