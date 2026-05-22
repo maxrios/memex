@@ -5,7 +5,7 @@
   ],
   "git_ref": "feat/node-auto (406ba54f)",
   "created_at": "2026-05-22T03:04:16.356229Z",
-  "updated_at": "2026-05-22T03:10:26.776496Z",
+  "updated_at": "2026-05-22T03:15:47.110466Z",
   "summary": {
     "goal": "Add 'memex node auto' subcommand: read a JSON payload of draft node additions, support --dry-run (default, prints a diff) and --apply (merge with dedupe-on-normalized-text). Closes #60.",
     "decisions": [
@@ -14,7 +14,8 @@
       "Normalize for dedupe = trim + collapse whitespace + lowercase + strip trailing .!? — handles common re-emit drift (whitespace, casing, trailing period) without crossing into fuzzy matching.",
       "Artifacts dedupe on exact path (no normalization) — paths are case-sensitive on most filesystems and trailing-punctuation stripping is wrong for them.",
       "Dry-run is the default action; --apply writes without a TTY confirmation. The dry-run-default gate IS the safety net — avoids a three-flag combo (--dry-run / --apply / --force).",
-      "Required --from-stdin (no implicit stdin read) — leaves room for a future --payload-file flag without ambiguity about where input comes from."
+      "Required --from-stdin (no implicit stdin read) — leaves room for a future --payload-file flag without ambiguity about where input comes from.",
+      "Skill guidance recommends node auto when there are 2+ updates in a row; single 'memex node edit' calls remain the lighter-weight path for one-off context."
     ],
     "rejected_approaches": [
       {
@@ -38,10 +39,12 @@
       "src/commands/node.rs",
       "src/main.rs",
       "src/models.rs",
-      "tests/integration_tests.rs"
+      "tests/integration_tests.rs",
+      "README.md",
+      "claude-plugin/skills/memex/SKILL.md"
     ]
   },
   "raw_transcript_ref": null,
   "tags": [],
-  "status": "Active"
+  "status": "Resolved"
 }
