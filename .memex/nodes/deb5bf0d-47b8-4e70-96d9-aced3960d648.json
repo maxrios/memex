@@ -1,0 +1,24 @@
+{
+  "id": "deb5bf0d-47b8-4e70-96d9-aced3960d648",
+  "parent_ids": [
+    "03a1d310-33e0-46a6-8138-35d247a8b494"
+  ],
+  "git_ref": "chore/renovate-github-actions-grouping (f6a93f2a)",
+  "created_at": "2026-05-23T04:28:37.623980Z",
+  "updated_at": "2026-05-23T04:28:53.941129Z",
+  "summary": {
+    "goal": "Configure Renovate: group GitHub Actions updates with 14-day cooldown and auto-merge for patch/minor/digest; prefix PR titles with [skip memex] so renovate PRs don't trigger memex-check.",
+    "decisions": [
+      "Used commitMessagePrefix instead of branchPrefix/prTitle so [skip memex] lands at the front of both commit messages and PR titles in one place. Renovate derives titles from commit messages, so a single field covers both.",
+      "Borrowed the github-actions packageRule from 20jasper/JJPWRGEM verbatim: matchUpdateTypes patch/minor/digest, automerge enabled, minimumReleaseAge 14 days. Major bumps stay manual."
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "renovate.json"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

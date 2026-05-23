@@ -2,5 +2,15 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "commitMessagePrefix": "[skip memex]",
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions",
+      "matchUpdateTypes": ["patch", "minor", "digest"],
+      "automerge": true,
+      "minimumReleaseAge": "14 days"
+    }
   ]
 }
