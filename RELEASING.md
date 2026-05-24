@@ -22,7 +22,7 @@ Each release is itself tracked as a memex node so the graph captures *what shipp
 3. **Create the release node.** Parent is the tip of `main` (find via `memex node list` or `memex graph view`):
 
    ```
-   memex node create --parent <main-tip-id> --goal "Release v<version>" --tag release
+   memex node create --parent <main-tip-id> --goal "Release v<version>" --tags release
    ```
 
 4. **Bump the version.** Edit `version` in `Cargo.toml`, then run `cargo build` once so `Cargo.lock` picks up the new version.

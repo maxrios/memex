@@ -44,7 +44,7 @@ cargo run -- <command>
 memex init
 
 # Create a node for a new feature
-memex node create --parent <root-id> --goal "Add user authentication" --tag auth
+memex node create --parent <root-id> --goal "Add user authentication" --tags auth
 
 # During implementation, record decisions and artifacts incrementally
 memex node edit --decision "Used JWT over session cookies for statelessness"
@@ -81,7 +81,7 @@ Create a new conversation node.
 | `--parent <id>` | Parent node ID |
 | `--goal "..."` | One-line goal for this node |
 | `--git-ref <ref>` | Git branch or tag to associate |
-| `--tag <tag>` | Tag the node (repeatable) |
+| `--tags <tag>` | Tag the node (repeatable) |
 
 ### `memex node edit [id]`
 
