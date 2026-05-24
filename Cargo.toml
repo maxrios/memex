@@ -1,6 +1,6 @@
 [package]
 name = "memex-cli"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 rust-version = "1.74"
 description = "A CLI tool for organizing AI-assisted development into a versioned, navigable DAG of conversation nodes."
