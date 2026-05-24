@@ -1,0 +1,26 @@
+{
+  "id": "cc9ff694-a924-4777-bd26-b39fc69e73e6",
+  "parent_ids": [
+    "c5bf0834-7f68-499a-81b7-f67133f5d3ec"
+  ],
+  "git_ref": "docs/releasing-tags-flag (90ce8441)",
+  "created_at": "2026-05-24T02:18:25.989338Z",
+  "updated_at": "2026-05-24T02:19:07.497069Z",
+  "summary": {
+    "goal": "Fix --tag → --tags typo in RELEASING.md and README.md examples",
+    "decisions": [
+      "All three doc instances use --tags (plural) since that is the actual flag clap derives from the field name; verified with 'memex node create --help'."
+    ],
+    "rejected_approaches": [],
+    "open_threads": [
+      "CHANGELOG.md:38 also says 'optionally `--tag`' for the v0.1 entry. Historical note; left untouched to avoid retroactively editing past changelog entries."
+    ],
+    "key_artifacts": [
+      "RELEASING.md",
+      "README.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}
