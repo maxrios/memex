@@ -1,0 +1,26 @@
+{
+  "id": "c5bf0834-7f68-499a-81b7-f67133f5d3ec",
+  "parent_ids": [
+    "deb5bf0d-47b8-4e70-96d9-aced3960d648"
+  ],
+  "git_ref": "release/v0.2.1 (fa0b2438)",
+  "created_at": "2026-05-24T02:11:00.792224Z",
+  "updated_at": "2026-05-24T02:12:07.349616Z",
+  "summary": {
+    "goal": "Release v0.2.1",
+    "decisions": [
+      "Patch-level bump (0.2.0 → 0.2.1): no source changes since v0.2.0, only Renovate-driven dependency updates (toml 1.0, assert_cmd/predicates pin, serde_json/uuid/clap minor refreshes) and CI action bumps (checkout, cache, github-script, artifact actions, gh-release). Stays in SemVer PATCH because no API or CLI surface changed."
+    ],
+    "rejected_approaches": [],
+    "open_threads": [],
+    "key_artifacts": [
+      "Cargo.toml",
+      "CHANGELOG.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [
+    "release"
+  ],
+  "status": "Resolved"
+}

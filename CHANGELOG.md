@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-05-23
+
+### Changed
+
+- Dependency maintenance: bumped `toml` to 1.0, pinned `assert_cmd` to 2.2.2 and `predicates` to 3.1.4, refreshed `serde_json`, `uuid`, and `clap` minor/patch updates via Renovate.
+- CI maintenance: pinned and refreshed `actions/checkout`, `actions/cache`, `actions/github-script`, `actions/upload-artifact`/`download-artifact`, and `softprops/action-gh-release` to current major versions via Renovate.
+- Renovate configured for the repo: groups GitHub Actions updates with a 14-day cooldown, auto-merges patch/minor/digest bumps, and prefixes Renovate commits/PR titles with `[skip memex]` so they bypass `memex-check`.
+
 ## [0.2.0] - 2026-05-22
 
 ### Added
@@ -41,6 +49,7 @@ The first tagged release of memex — a CLI for organizing AI-assisted developme
 - Claude Code plugin under `claude-plugin/` shipping a `memex` skill that triggers in any repo with a `.memex/` directory.
 - Release workflow (`.github/workflows/release.yml`) builds binaries for `x86_64-unknown-linux-gnu`, `aarch64-apple-darwin`, `x86_64-apple-darwin`, and `x86_64-pc-windows-msvc`, attaches them with SHA-256 checksums to a draft GitHub release, and publishes to crates.io on tag push.
 
-[Unreleased]: https://github.com/maxrios/memex/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/maxrios/memex/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/maxrios/memex/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/maxrios/memex/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/maxrios/memex/releases/tag/v0.1.0
