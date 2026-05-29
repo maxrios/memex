@@ -1,0 +1,31 @@
+{
+  "id": "7dd82e7e-52d5-4010-a6e0-fb065a0b9b34",
+  "parent_ids": [
+    "50c6da9b-fda1-475e-8d88-1882f2d52825"
+  ],
+  "git_ref": "docs/readme-banner (24a91303)",
+  "created_at": "2026-05-29T03:50:09.751920Z",
+  "updated_at": "2026-05-29T03:52:05.055181Z",
+  "summary": {
+    "goal": "Add the node-graph screenshot as a banner image at the top of the README",
+    "decisions": [
+      "Placed the banner at docs/banner.png (moved from the repo-root nodes.png paste) and referenced it via an absolute raw.githubusercontent.com/maxrios/memex/main URL so it renders both on GitHub and on the crates.io README, matching the existing absolute github.com links in the file."
+    ],
+    "rejected_approaches": [
+      {
+        "description": "Reference the banner with a relative path (docs/banner.png)",
+        "reason": "Relative image paths do not resolve on the crates.io README render; the absolute raw URL works on both GitHub and crates.io, consistent with the existing absolute links in the file."
+      }
+    ],
+    "open_threads": [
+      "The raw URL pins to the main branch, so the banner only resolves once docs/banner.png is merged to main — it will 404 on the branch/PR preview until then."
+    ],
+    "key_artifacts": [
+      "docs/banner.png",
+      "README.md"
+    ]
+  },
+  "raw_transcript_ref": null,
+  "tags": [],
+  "status": "Resolved"
+}

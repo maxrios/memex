@@ -1,5 +1,7 @@
 # memex
 
+![memex node graph](https://raw.githubusercontent.com/maxrios/memex/main/docs/banner.png)
+
 memex is a CLI tool that records the reasoning behind AI-assisted development as a versioned graph of decision nodes, modeled on Architecture Decision Records (ADRs).
 
 Like an ADR, each node captures the *why* behind a change: the decision made, the alternative rejected, and the questions left open. Unlike an ADR, memex operates at the granularity of a single unit of work rather than only major architectural choices, and nodes form a directed graph so that each new piece of work inherits the context of its ancestor chain. Nodes are designed to be drafted by the agent performing the work and reviewed by a human.
